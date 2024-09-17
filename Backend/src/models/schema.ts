@@ -6,7 +6,7 @@ dotenv.config();
 
 export const programming_language = mysqlTable('programming_language', {
     programming_language_id: smallint('programming_language').primaryKey().autoincrement(),
-    language_name: varchar('language_name', { length: 25 }).notNull(),
+    language_name: varchar('language_name', { length: 40 }).notNull(),
 }, (table) => ({
     languageNameIndex: index('language_name_idx').on(table.language_name),
 }));
@@ -111,7 +111,7 @@ export const prac_language = mysqlTable('prac_language', {
     practical_id: int('practical_id').notNull().references(() => practicals.practical_id),
     programming_language_id: smallint('programming_language_id').notNull().references(() => programming_language.programming_language_id)
 }, (table) => ({
-    practicalIdIndex: index('practical_id_idx').on(table.practical_id),
+    // practicalIdIndex: index('practical_id_idx').on(table.practical_id),
 }));
 
 export const batch_practical_access = mysqlTable('batch_practical_access', {
@@ -136,9 +136,9 @@ export const submissions = mysqlTable('submissions', {
     student_id: int('student_id')
         .notNull()
         .references(() => students.student_id),
-    programming_language_id: int('programming_language_id')
-        .notNull()
-        .references(() => programming_language.programming_language_id),
+    // programming_language_id: int('programming_language_id')
+    //     .notNull()
+    //     .references(() => programming_language.programming_language_id),
     code_submitted: text('code_submitted').notNull(),
     status: mysqlEnum('status', ['Accepted', 'Rejected', 'Pending']).notNull().default('Pending'),
     marks: int('marks').default(0),
@@ -275,6 +275,7 @@ export const batchPracticalAccessRelations = relations(batch_practical_access, (
         references: [batch.batch_id],
     }),
 }));
+
 export const submissionsRelations = relations(submissions, ({ one }) => ({
     practical: one(practicals, {
         fields: [submissions.practical_id],

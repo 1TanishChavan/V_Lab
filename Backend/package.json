@@ -12,10 +12,10 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsnd -r tsconfig-paths/register --pretty --transpile-only scripts/seed.ts",
+    "db:seed": "tsnd -r tsconfig-paths/register --pretty --transpile-only scripts/seed2.ts",
     "db:migrate": "tsnd -r tsconfig-paths/register --pretty --transpile-only scripts/migrate.ts",
     "db:studio": "drizzle-kit studio --port 3306",
-    "db:setup": "drizzle-kit push && ts-node scripts/seed.ts"
+    "db:setup": "drizzle-kit push && ts-node scripts/seed2.ts"
   },
   "keywords": [],
   "license": "ISC",

@@ -175,10 +175,11 @@ const CodingEnvironmentPage = () => {
               <SelectLabel>Languages</SelectLabel>
               {languages.map((lang) => (
                 <SelectItem
-                  key={lang.programming_language_id}
-                  value={lang.programming_language_id?.toString()}
+                  key={lang.prac_language.prac_language_id}
+                  value={lang.prac_language.programming_language_id?.toString()}
                 >
-                  {lang.language_name || "Unknown Language"}
+                  {lang.programming_language.language_name ||
+                    "Unknown Language"}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -190,7 +191,9 @@ const CodingEnvironmentPage = () => {
         height="400px"
         language={
           languages.find(
-            (lang) => lang.programming_language_id?.toString() === language
+            (lang) =>
+              lang.programming_language.programming_language_id?.toString() ===
+              language
           )?.language_name || "javascript"
         }
         value={code}

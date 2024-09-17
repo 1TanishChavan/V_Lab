@@ -10,3 +10,5 @@ npm i
 3. npm run db:push
 4. npm run db:seed
 
+DROP DATABASE v_lab_seed;
+CREATE DATABASE v_lab_seed;

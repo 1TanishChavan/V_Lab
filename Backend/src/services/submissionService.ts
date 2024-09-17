@@ -1,14 +1,15 @@
 import { db } from '../config/db';
-import { submissions, practicals, students, users, prac_io, prac_language, courses } from '../models/schema';
+import { submissions, practicals, students, users, prac_io, prac_language, courses, batch_practical_access, batch } from '../models/schema';
 import { eq, and } from 'drizzle-orm';
 import { AppError } from '../utils/errors';
 
-export async function createSubmission(submissionData: any, studentId: number) {
+export async function createSubmission(submissionData: any) {
     try {
         const result = await db.insert(submissions).values({
-            ...submissionData,
-            student_id: studentId,
-            submission_time: new Date()
+            practical_id: submissionData.practicalId,
+            student_id: submissionData.studentId,
+            code_submitted: submissionData.code,
+            submission_time: new Date(),
         });
         return result;
     } catch (error) {
@@ -50,7 +51,7 @@ export async function getSubmissionById(submissionId: number) {
                 practical_name: practicals.practical_name,
                 course_name: courses.course_name,
                 prac_io: prac_io.input,
-                prac_language: prac_language.language_name,
+                // prac_language: prac_language.language_name,
                 submission_status: submissions.status,
                 code_submitted: submissions.code_submitted,
                 marks: submissions.marks
@@ -87,4 +88,47 @@ export async function updateSubmission(submissionId: number, updateData: { statu
         console.error('Error in updateSubmission:', error);
         throw new AppError(500, 'Failed to update submission');
     }
+}
+
+export async function getSubmissionStatus(practicalId: number, studentId: number) {
+    const submission = await db.select({
+        status: submissions.status,
+        marks: submissions.marks,
+    })
+        .from(submissions)
+        .where(and(
+            eq(submissions.practical_id, practicalId),
+            eq(submissions.student_id, studentId)
+        ))
+        .limit(1);
+
+    return submission[0] || { status: 'Not Submitted', marks: 0 };
+}
+
+export async function getPracticalWithSubmissionStatus(courseId: number, studentId: number) {
+    const result = await db.select({
+        practical_id: practicals.practical_id,
+        sr_no: practicals.sr_no,
+        practical_name: practicals.practical_name,
+        description: practicals.description,
+        pdf_url: practicals.pdf_url,
+        status: submissions.status,
+        marks: submissions.marks,
+        deadline: batch_practical_access.deadline,
+        lock: batch_practical_access.lock,
+    })
+        .from(practicals)
+        .leftJoin(submissions, and(
+            eq(submissions.practical_id, practicals.practical_id),
+            eq(submissions.student_id, studentId)
+        ))
+        .leftJoin(batch_practical_access, eq(batch_practical_access.practical_id, practicals.practical_id))
+        .leftJoin(students, eq(students.student_id, studentId))
+        .leftJoin(batch, eq(batch.batch_id, students.batch_id))
+        .where(and(
+            eq(practicals.course_id, courseId),
+            eq(batch_practical_access.batch_id, batch.batch_id)
+        ));
+
+    return result;
 }

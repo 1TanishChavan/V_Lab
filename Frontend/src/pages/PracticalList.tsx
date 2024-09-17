@@ -43,11 +43,6 @@ import { Input } from "@/components/ui/input";
 import { PlusIcon, Pencil, Trash2, Users, Lock } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
-function formatDate(inputDate: string): string {
-  const date = parseISO(inputDate); // Parse the ISO string
-  return format(date, "dd-MM-yyyy HH:mm"); // Format the date
-}
-
 const PracticalList = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -76,6 +71,7 @@ const PracticalList = () => {
     try {
       let response;
       if (isStudent) {
+        // response = await api.get(`/practicals/course/${courseId}`);
         response = await api.get(`/practicals/${courseId}/student-view`);
       } else {
         response = await api.get(`/practicals/course/${courseId}`);
@@ -109,6 +105,9 @@ const PracticalList = () => {
       const accessData = batchAccess.find(
         (access) => access.batch_id === batchId
       );
+      if (accessData.lock == null) {
+        accessData.lock = false;
+      }
       await api.post("/batch-practical-access", {
         practical_id: selectedPracticalId,
         batch_id: batchId,
@@ -234,9 +233,10 @@ const PracticalList = () => {
   );
 
   const renderStudentCard = (practical) => {
-    const isLocked = batchAccess.find(
-      (access) => access.practical_id === practical.practical_id
-    )?.lock;
+    // const isLocked = batchAccess.find(
+    //   (access) => access.practical_id === practical.practical_id
+    // )?.lock;
+    const isLocked = practical.lock;
     return (
       <Card
         key={practical.practical_id}
@@ -261,14 +261,30 @@ const PracticalList = () => {
               )}
             </div>
           </div>
-          <p className="mt-2 text-sm text-gray-600">{practical.description}</p>
+          <div className="flex justify-between items-center">
+            {/* <h3
+              className="text-lg font-semibold truncate"
+              onClick={() => handlePracticalClick(practical)}
+            >
+              {practical.sr_no}. {practical.practical_name}
+            </h3> */}
+            <p className="mt-2 text-sm text-gray-600">
+              {practical.description}
+            </p>
+            <div>
+              <p className="mt-2 text-sm text-gray-500">
+                Deadline:
+                {new Date(practical.deadline).toLocaleString()}
+              </p>
+            </div>
+          </div>
         </CardContent>
-        <CardFooter>
+        {/* <CardFooter className="flex justify-end ">
           <p className="text-sm text-gray-500">
             Deadline:
             {new Date(formatDate(practical.deadline)).toLocaleString()}
           </p>
-        </CardFooter>
+        </CardFooter> */}
       </Card>
     );
   };
@@ -348,7 +364,9 @@ const PracticalList = () => {
                     <TableCell>
                       <Input
                         type="datetime-local"
-                        value={access.deadline}
+                        value={new Date(access.deadline)
+                          .toISOString()
+                          .slice(0, 16)}
                         onChange={(e) => {
                           setBatchAccess(
                             batchAccess.map((a) =>

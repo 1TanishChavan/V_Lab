@@ -6,7 +6,7 @@ import { AppError } from '../../src/utils/errors';
 
 export async function createSubmission(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-        const submission = await submissionService.createSubmission(req.body, req.user!.user_id);
+        const submission = await submissionService.createSubmission(req.body);
         res.status(201).json(submission);
     } catch (error) {
         next(error);
@@ -40,6 +40,17 @@ export async function updateSubmission(req: AuthenticatedRequest, res: Response,
 
         const updatedSubmission = await submissionService.updateSubmission(parseInt(req.params.submissionId), { status, marks });
         res.json(updatedSubmission);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { courseId } = req.params;
+        const studentId = req.user!.user_id;
+        const practicals = await submissionService.getPracticalWithSubmissionStatus(parseInt(courseId), studentId);
+        res.json(practicals);
     } catch (error) {
         next(error);
     }
