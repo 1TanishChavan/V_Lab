@@ -126,6 +126,24 @@ async function seed(): Promise<void> {
         .map((faculty) => faculty.user_id);
     });
 
+    // Insert faculty data
+    const facultyInsertData = insertedUsers
+      .filter((user) => user.role === "Faculty")
+      .map((faculty) => {
+        const departmentId = insertedDepartments.find((dept) =>
+          deptToFacultyMap[dept.department_id].includes(faculty.user_id)
+        )?.department_id;
+
+        return {
+          faculty_id: faculty.user_id,
+          department_id: departmentId,
+        };
+      });
+
+    await db.insert(schema.faculty).values(facultyInsertData);
+
+    console.log("Faculty data inserted successfully");
+
     // Seed batch table with 8 semesters, 2 divisions per semester, 4 batches per division
     interface BatchInsert {
       department_id: number;
