@@ -99,7 +99,7 @@ CREATE TABLE `submissions` (
 	`code_submitted` text NOT NULL,
 	`status` enum('Accepted','Rejected','Pending') NOT NULL DEFAULT 'Pending',
 	`marks` int DEFAULT 0,
-	`submission_time` datetime DEFAULT now(3),
+	`submission_time` datetime DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT `submissions_submission_id` PRIMARY KEY(`submission_id`)
 );
 
