@@ -53,7 +53,7 @@ async function seed() {
 
         for (const lang of languages) {
             await db.insert(schema.programming_language).values({
-                programming_language: lang.id,
+                programming_language_id: lang.id,
                 language_name: lang.name
             });
         }
@@ -70,12 +70,12 @@ async function seed() {
 
         // Seed users table
         const userInserts = [
-            { username: 'john_doe', password: await hashPassword('password123'), email: 'john.doe@example.com', role: 'Student' },
-            { username: 'jane_smith', password: await hashPassword('password456'), email: 'jane.smith@example.com', role: 'Faculty' },
-            { username: 'alice_johnson', password: await hashPassword('password789'), email: 'alice.johnson@example.com', role: 'HOD' },
-            { username: 'bob_wilson', password: await hashPassword('passwordabc'), email: 'bob.wilson@example.com', role: 'Admin' },
-            { username: 'emma_brown', password: await hashPassword('passworddef'), email: 'emma.brown@example.com', role: 'Student' },
-            { username: 'michael_davis', password: await hashPassword('passwordghi'), email: 'michael.davis@example.com', role: 'Faculty' },
+            { username: 'john_doe', password: await hashPassword('123456'), email: 'john.doe@example.com', role: 'Student' },
+            { username: 'jane_smith', password: await hashPassword('123456'), email: 'jane.smith@example.com', role: 'Faculty' },
+            { username: 'alice_johnson', password: await hashPassword('123456'), email: 'alice.johnson@example.com', role: 'HOD' },
+            { username: 'bob_wilson', password: await hashPassword('123456'), email: 'bob.wilson@example.com', role: 'Admin' },
+            { username: 'emma_brown', password: await hashPassword('123456'), email: 'emma.brown@example.com', role: 'Student' },
+            { username: 'michael_davis', password: await hashPassword('123456'), email: 'michael.davis@example.com', role: 'Faculty' },
         ];
 
         for (const user of userInserts) {
