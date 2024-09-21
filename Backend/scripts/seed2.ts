@@ -336,65 +336,21 @@ async function seed(): Promise<void> {
         );
 
         const batchPracticalAccessInserts = [];
+        const oneMonthLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days later
+
         for (const batch of batchesForPractical) {
           batchPracticalAccessInserts.push({
             practical_id: practicalId,
             batch_id: batch.batch_id,
-            lock: Math.random() > 0.5,
-            deadline: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000),
+            lock: false, // Always set to false
+            deadline: oneMonthLater, // Set to 30 days after the current date
           });
         }
+
         await db.insert(schema.batch_practical_access).values(batchPracticalAccessInserts);
-
-        // // Fetch actual student IDs for the current course's department and semester
-        // const students = await db
-        //   .select()
-        //   .from(schema.students)
-        //   .innerJoin(schema.batch, sql`${schema.students.batch_id} = ${schema.batch.batch_id}`)
-        //   .where(sql`${schema.batch.department_id} = ${course.department_id} AND ${schema.batch.semester} = ${course.semester}`);
-
-        // if (students.length === 0) {
-        //   console.warn(`No students found for course ${course.course_id}, skipping submissions.`);
-        //   continue;  // Skip submission seeding if no students are found
-        // }
-
-        // const studentIds = students.map(student => student.student_id);
-
-        // const submissionInserts = [];
-        // for (const studentId of studentIds) {
-        //   const submissionCount = Math.floor(Math.random() * 6);  // 0 to 5 submissions per student
-        //   for (let k = 0; k < submissionCount; k++) {
-        //     submissionInserts.push({
-        //       practical_id: practicalId,
-        //       student_id: studentId,
-        //       code_submitted: `Code for submission ${k + 1} of practical ${practical.practical_name}`,
-        //       status: ['Accepted', 'Rejected', 'Pending'][Math.floor(Math.random() * 3)],
-        //       marks: Math.floor(Math.random() * 16),  // Marks out of 15
-        //       submission_time: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-        //     });
-        //   }
-        // }
-
-        // // Insert submissions if valid students exist
-        // if (submissionInserts.length > 0) {
-        //   await db.insert(schema.submissions).values(submissionInserts);
-        //   console.log(`Submissions for practical ${practical.practical_name} seeded successfully.`);
-        // } else {
-        //   console.warn(`No valid student IDs found for submissions.`);
-        // }
 
       }
     }
-
-
-    // Split submissionInserts into smaller batches
-    // const batchSize = 1000; // Adjust this value based on your needs
-    // for (let i = 0; i < submissionInserts.length; i += batchSize) {
-    //   const batch = submissionInserts.slice(i, i + batchSize);
-    //   await db.insert(schema.submissions).values(batch);
-    // }
-
-    // console.log("Submissions seeded successfully");
 
   } catch (error) {
     console.error("Error seeding data:", error);
