@@ -3,10 +3,10 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
 import { useThemeStore } from "./store/themeStore";
 import Layout from "./components/Layout";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import CourseCreation from "./pages/CourseCreation";
-import CourseUpdate from "./pages/CourseUpdate";
+// import Login from "./pages/Login";
+// import Register from "./pages/Register";
+// import CourseCreation from "./pages/CourseCreation";
+// import CourseUpdate from "./pages/CourseUpdate";
 import Courses from "./pages/Courses";
 import CourseAssign from "./pages/CourseAssign";
 import PracticalCreation from "./pages/PracticalCreation";
@@ -18,6 +18,7 @@ import PracticalList from "./pages/PracticalList";
 import AuthTabs from "./pages/AuthTabs";
 import CodingEnvironmentPage from "./pages/CodeEnv";
 import PracticalSubmissionDetails from "./pages/PracticalSubmissionDetails";
+import FacultyDetails from "./pages/Faculty";
 
 const App: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -49,6 +50,10 @@ const App: React.FC = () => {
               <Route
                 path="/course-assign/:courseId"
                 element={<CourseAssign />}
+              />
+              <Route
+                path="/faculty"
+                element={<FacultyDetails />}
               />
               <Route path="/practicals/:courseId" element={<PracticalList />} />
               <Route
