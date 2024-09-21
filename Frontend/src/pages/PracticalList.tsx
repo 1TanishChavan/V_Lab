@@ -232,9 +232,6 @@ const PracticalList = () => {
   );
 
   const renderStudentCard = (practical) => {
-    // const isLocked = batchAccess.find(
-    //   (access) => access.practical_id === practical.practical_id
-    // )?.lock;
     const isLocked = practical.lock;
     return (
       <Card
@@ -331,63 +328,65 @@ const PracticalList = () => {
             </DrawerDescription>
           </DrawerHeader>
           <div className="p-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Division</TableHead>
-                  <TableHead>Batch</TableHead>
-                  <TableHead>Lock</TableHead>
-                  <TableHead>Deadline</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {batchAccess.map((access) => (
-                  <TableRow key={access.batch_id}>
-                    <TableCell>{access.division}</TableCell>
-                    <TableCell>{access.batch_name}</TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={access.lock}
-                        onCheckedChange={(checked) => {
-                          setBatchAccess(
-                            batchAccess.map((a) =>
-                              a.batch_id === access.batch_id
-                                ? { ...a, lock: checked }
-                                : a
-                            )
-                          );
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="datetime-local"
-                        value={new Date(access.deadline)
-                          .toISOString()
-                          .slice(0, 16)}
-                        onChange={(e) => {
-                          setBatchAccess(
-                            batchAccess.map((a) =>
-                              a.batch_id === access.batch_id
-                                ? { ...a, deadline: e.target.value }
-                                : a
-                            )
-                          );
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        onClick={() => handleAccessSubmit(access.batch_id)}
-                      >
-                        Submit
-                      </Button>
-                    </TableCell>
+            <div className="max-h-[60vh] overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Division</TableHead>
+                    <TableHead>Batch</TableHead>
+                    <TableHead>Lock</TableHead>
+                    <TableHead>Deadline</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {batchAccess.map((access) => (
+                    <TableRow key={access.batch_id}>
+                      <TableCell>{access.division}</TableCell>
+                      <TableCell>{access.batch_name}</TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={access.lock}
+                          onCheckedChange={(checked) => {
+                            setBatchAccess(
+                              batchAccess.map((a) =>
+                                a.batch_id === access.batch_id
+                                  ? { ...a, lock: checked }
+                                  : a
+                              )
+                            );
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="datetime-local"
+                          value={new Date(access.deadline)
+                            .toISOString()
+                            .slice(0, 16)}
+                          onChange={(e) => {
+                            setBatchAccess(
+                              batchAccess.map((a) =>
+                                a.batch_id === access.batch_id
+                                  ? { ...a, deadline: e.target.value }
+                                  : a
+                              )
+                            );
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => handleAccessSubmit(access.batch_id)}
+                        >
+                          Submit
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>

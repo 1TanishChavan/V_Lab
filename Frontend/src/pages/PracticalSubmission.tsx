@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/hooks/use-toast";
 import api from "../services/api";
 import {
@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,20 +28,29 @@ import {
 
 const PracticalSubmissionPage = () => {
   const { practicalId } = useParams();
+  const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
+  const [filteredSubmissions, setFilteredSubmissions] = useState([]);
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState(null);
+  const [practicalName, setPracticalName] = useState("");
+  const [searchRollId, setSearchRollId] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     fetchBatches();
+    fetchPracticalDetails();
   }, []);
 
   useEffect(() => {
     if (selectedBatch) {
       fetchSubmissions();
     }
-  }, [selectedBatch]);
+  }, [selectedBatch, practicalId]);
+
+  useEffect(() => {
+    filterSubmissions();
+  }, [submissions, searchRollId]);
 
   const fetchBatches = async () => {
     try {
@@ -54,6 +64,20 @@ const PracticalSubmissionPage = () => {
       toast({
         title: "Error",
         description: "Failed to fetch batches. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchPracticalDetails = async () => {
+    try {
+      const response = await api.get(`/practicals/${practicalId}`);
+      setPracticalName(response.data.practical_name);
+    } catch (error) {
+      console.error("Error fetching practical details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch practical details. Please try again.",
         variant: "destructive",
       });
     }
@@ -73,6 +97,21 @@ const PracticalSubmissionPage = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleViewSubmission = (submissionId) => {
+    navigate(`/practical-submission/${practicalId}/${submissionId}`);
+  };
+
+  const filterSubmissions = () => {
+    const filtered = submissions.filter((submission) =>
+      submission.roll_id.toLowerCase().includes(searchRollId.toLowerCase())
+    );
+    setFilteredSubmissions(filtered);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchRollId(e.target.value);
   };
 
   return (
@@ -99,18 +138,30 @@ const PracticalSubmissionPage = () => {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <Select value={selectedBatch} onValueChange={setSelectedBatch}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a batch" />
-              </SelectTrigger>
-              <SelectContent>
-                {batches.map((batch) => (
-                  <SelectItem key={batch.batch_id} value={batch.batch_id}>
-                    {batch.division} - {batch.batch_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <p>
+              Practical {practicalId}: {practicalName}
+            </p>
+            <div className="flex items-center space-x-4 mt-2">
+              <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map((batch) => (
+                    <SelectItem key={batch.batch_id} value={batch.batch_id}>
+                      {batch.division} - {batch.batch_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                type="text"
+                placeholder="Search by Roll ID"
+                value={searchRollId}
+                onChange={handleSearchChange}
+                className="w-[200px]"
+              />
+            </div>
           </div>
 
           <Table>
@@ -125,7 +176,7 @@ const PracticalSubmissionPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {submissions.map((submission) => (
+              {filteredSubmissions.map((submission) => (
                 <TableRow key={submission.submission_id}>
                   <TableCell>{submission.roll_id}</TableCell>
                   <TableCell>{submission.student_name}</TableCell>
@@ -136,8 +187,9 @@ const PracticalSubmissionPage = () => {
                   <TableCell>{submission.marks}</TableCell>
                   <TableCell>
                     <Button
-                      as={Link}
-                      to={`/practical-submission/${practicalId}/${submission.submission_id}`}
+                      onClick={() =>
+                        handleViewSubmission(submission.submission_id)
+                      }
                       variant="outline"
                     >
                       View

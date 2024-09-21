@@ -72,7 +72,7 @@ const App: React.FC = () => {
                 element={<PracticalSubmission />}
               />
               <Route
-                path="/practical-submission/:practicalId/:submissionId"
+                path="/practical-submission-details/:practicalId/:submissionId"
                 element={<PracticalSubmissionDetails />}
               />
               <Route
@@ -86,6 +86,10 @@ const App: React.FC = () => {
                 element={<StudentSubmissions />}
               />
               <Route path="/faculty" element={<FacultyDetails />} />
+              {/* <Route
+                path="/view-code/:submissionId"
+                element={<ViewCodePage />}
+              /> */}
               {/* <Route path="/dashboard" element={<Batch />} /> */}
             </Routes>
           </div>

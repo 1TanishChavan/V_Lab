@@ -1,5 +1,5 @@
 import { db } from 'config/db';
-import { users, faculty } from 'models/schema';
+import { users, faculty, courses_faculty, batch } from 'models/schema';
 import { eq } from 'drizzle-orm';
 import { AppError } from '../utils/errors';
 
@@ -23,7 +23,7 @@ export async function getAllFaculty() {
             username: users.username,
             email: users.email,
         }).from(users)
-        .innerJoin(faculty, eq(users.user_id, faculty.faculty_id));
+            .innerJoin(faculty, eq(users.user_id, faculty.faculty_id));
 
         if (!facultyMembers.length) {
             throw new AppError(404, 'No faculty members found');
@@ -57,4 +57,30 @@ export async function getFacultyDetails(facultyId: number) {
     }
 
     return facultyDetails[0];
+}
+
+export async function getFacultyBatches(facultyId: number) {
+    try {
+        console.log('Fetching batches for faculty ID:', facultyId);
+        const facultyBatches = await db
+            .select({
+                batch_id: batch.batch_id,
+                division: batch.division,
+                batch_name: batch.batch
+            })
+            .from(batch)
+            .innerJoin(courses_faculty, eq(batch.batch_id, courses_faculty.batch_id))
+            .where(eq(courses_faculty.faculty_id, facultyId));
+
+        console.log('Fetched batches:', facultyBatches);
+
+        if (facultyBatches.length === 0) {
+            return []; // Return an empty array if no batches found
+        }
+
+        return facultyBatches;
+    } catch (error) {
+        console.error('Error in getFacultyBatches:', error);
+        throw new AppError(500, `Failed to fetch faculty batches: ${error.message}`);
+    }
 }

@@ -63,7 +63,6 @@ const PracticalSubmissionDetails = () => {
         title: "Success",
         description: "Submission updated successfully.",
       });
-      navigate(`/practical-submission/${practicalId}`);
     } catch (error) {
       console.error("Error updating submission:", error);
       toast({
