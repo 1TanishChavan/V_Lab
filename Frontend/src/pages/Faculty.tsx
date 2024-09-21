@@ -56,11 +56,7 @@ const FacultyPage = () => {
   const fetchFaculty = async () => {
     try {
       const endpoint = department
-<<<<<<< HEAD
         ? `/faculty/department/${department}`
-=======
-        ? /faculty/department/${department}
->>>>>>> 057f0dea7b22e312029694ea5861209c56f297b5
         : "/faculty/all";
       const response = await api.get(endpoint);
       console.log('Faculty data:', response.data);  // Add this line
@@ -142,8 +138,4 @@ const FacultyPage = () => {
   );
 };
 
-<<<<<<< HEAD
 export default FacultyPage;
-=======
-export default FacultyPage;
->>>>>>> 057f0dea7b22e312029694ea5861209c56f297b5

@@ -14,11 +14,13 @@ import PracticalCreation from "./pages/PracticalCreation";
 import PracticalSubmission from "./pages/PracticalSubmission";
 import PracticalList from "./pages/PracticalList";
 // import Dashboard from "./pages/Dashboard";
-import CodingEnvironmentPage from "./pages/CodeEnv";
-import PracticalSubmissionDetails from "./pages/PracticalSubmissionDetails";
-import FacultyDetails from "./pages/Faculty";
+// import Batch from "./pages/Batch";
+import AuthTabs from "./pages/AuthTabs";
 import Students from "./pages/Students";
 import StudentSubmissions from "./pages/StudentSubmissions";
+import FacultyDetails from "./pages/Faculty";
+import CodingEnvironmentPage from "./pages/CodeEnv";
+import PracticalSubmissionDetails from "./pages/PracticalSubmissionDetails";
 
 const App: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -47,6 +49,11 @@ const App: React.FC = () => {
               <Route path="/login" element={<AuthTabs />} />
               <Route path="/register" element={<AuthTabs />} />
               <Route path="/courses" element={<Courses />} />
+              <Route path="/Students" element={<Students />} />
+              <Route
+                path="/StudentSubmissions"
+                element={<StudentSubmissions />}
+              />
               <Route
                 path="/course-assign/:courseId"
                 element={<CourseAssign />}
@@ -72,17 +79,13 @@ const App: React.FC = () => {
                 path="/coding/:courseId/:practicalId"
                 element={<CodingEnvironmentPage />}
               />
-              <Route path="/students" element={<Students />} />
-              <Route
-                path="/StudentSubmissions"
-                element={<StudentSubmissions />}
-              />
               <Route path="/batches" element={<PracticalList />} />
               <Route path="/Students" element={<Students />} />
               <Route
                 path="/StudentSubmissions"
                 element={<StudentSubmissions />}
               />
+              <Route path="/faculty" element={<FacultyDetails />} />
               {/* <Route path="/dashboard" element={<Batch />} /> */}
             </Routes>
           </div>
