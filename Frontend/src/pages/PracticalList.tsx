@@ -239,7 +239,7 @@ const PracticalList = () => {
     return (
       <Card
         key={practical.practical_id}
-        className={`mb-4 w-full ${isLocked ? "opacity-50" : ""}`}
+        className={`mb-4 w-full ${isLocked ? "opacity-30" : ""}`}
       >
         <CardContent className="p-4">
           <div className="flex justify-between items-center">
