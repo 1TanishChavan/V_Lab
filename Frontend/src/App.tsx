@@ -19,6 +19,8 @@ import AuthTabs from "./pages/AuthTabs";
 import CodingEnvironmentPage from "./pages/CodeEnv";
 import PracticalSubmissionDetails from "./pages/PracticalSubmissionDetails";
 import FacultyDetails from "./pages/Faculty";
+import Students from "./pages/Students";
+import StudentSubmissions from "./pages/StudentSubmissions";
 
 const App: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -75,6 +77,11 @@ const App: React.FC = () => {
               <Route
                 path="/coding/:courseId/:practicalId"
                 element={<CodingEnvironmentPage />}
+              />
+              <Route path="/students" element={<Students />} />
+              <Route
+                path="/StudentSubmissions"
+                element={<StudentSubmissions />}
               />
               <Route path="/batches" element={<PracticalList />} />
               {/* <Route path="/dashboard" element={<Batch />} /> */}
