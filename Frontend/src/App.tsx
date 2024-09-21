@@ -14,8 +14,6 @@ import PracticalCreation from "./pages/PracticalCreation";
 import PracticalSubmission from "./pages/PracticalSubmission";
 import PracticalList from "./pages/PracticalList";
 // import Dashboard from "./pages/Dashboard";
-// import Batch from "./pages/Batch";
-import AuthTabs from "./pages/AuthTabs";
 import CodingEnvironmentPage from "./pages/CodeEnv";
 import PracticalSubmissionDetails from "./pages/PracticalSubmissionDetails";
 import FacultyDetails from "./pages/Faculty";
@@ -53,10 +51,6 @@ const App: React.FC = () => {
                 path="/course-assign/:courseId"
                 element={<CourseAssign />}
               />
-              <Route
-                path="/faculty"
-                element={<FacultyDetails />}
-              />
               <Route path="/practicals/:courseId" element={<PracticalList />} />
               <Route
                 path="/practical-creation/:courseId"
@@ -84,6 +78,11 @@ const App: React.FC = () => {
                 element={<StudentSubmissions />}
               />
               <Route path="/batches" element={<PracticalList />} />
+              <Route path="/Students" element={<Students />} />
+              <Route
+                path="/StudentSubmissions"
+                element={<StudentSubmissions />}
+              />
               {/* <Route path="/dashboard" element={<Batch />} /> */}
             </Routes>
           </div>

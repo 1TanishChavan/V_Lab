@@ -14,7 +14,15 @@ export async function getStudentsByBatch(req: Request, res: Response, next: Next
         }
     }
 }
-
+export async function getStudentSubmissions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { studentId } = req.params;
+        const submissions = await submissionService.getStudentSubmissions(parseInt(studentId));
+        res.json(submissions);
+    } catch (error) {
+        next(error);
+    }
+}
 export async function getStudentByRollId(req: Request, res: Response, next: NextFunction) {
     try {
         const student = await studentService.getStudentByRollId(req.params.rollId);
