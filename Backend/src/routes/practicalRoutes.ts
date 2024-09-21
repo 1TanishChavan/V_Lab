@@ -7,7 +7,7 @@ import {
     getPracticalByCourse,
     getPracticalById, getPracticalLanguages
 } from '../controllers/practicalController';
-import { getPracticalWithSubmissionStatus } from 'src/controllers/submissionController';
+// import { getPracticalWithSubmissionStatus } from 'src/controllers/submissionController';
 
 import { authMiddleware, roleMiddleware } from '../middlewares/authMiddleware';
 
@@ -24,7 +24,7 @@ router.get('/:id/languages', getPracticalLanguages);
 
 
 // router.get('/:courseId', getPracticalByCourse);
-router.get('/:courseId/student-view', authMiddleware, roleMiddleware(['Student']), getPracticalWithSubmissionStatus);
+// router.get('/:courseId/student-view', authMiddleware, roleMiddleware(['Student']), getPracticalWithSubmissionStatus);
 
 
 export default router;

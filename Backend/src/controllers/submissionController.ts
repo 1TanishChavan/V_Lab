@@ -13,9 +13,22 @@ export async function createSubmission(req: AuthenticatedRequest, res: Response,
     }
 }
 
+export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { courseId } = req.params;
+        const studentId = req.user!.user_id;
+        const practicals = await submissionService.getPracticalWithSubmissionStatus(parseInt(courseId), studentId);
+        res.json(practicals);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function getSubmissionsByPractical(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-        const submissions = await submissionService.getSubmissionsByPractical(parseInt(req.params.practicalId), req.user!.user_id);
+        const { practicalId } = req.params;
+        const { batchId } = req.query;
+        const submissions = await submissionService.getSubmissionsByPractical(parseInt(practicalId), parseInt(batchId as string), req.user!.user_id);
         res.json(submissions);
     } catch (error) {
         next(error);
@@ -34,23 +47,12 @@ export async function getSubmissionById(req: AuthenticatedRequest, res: Response
 export async function updateSubmission(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { status, marks } = req.body;
-        if (typeof status !== 'string' && typeof marks !== 'number') {
+        if (typeof status !== 'string' || typeof marks !== 'number') {
             throw new AppError(400, 'Invalid input');
         }
 
         const updatedSubmission = await submissionService.updateSubmission(parseInt(req.params.submissionId), { status, marks });
         res.json(updatedSubmission);
-    } catch (error) {
-        next(error);
-    }
-}
-
-export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    try {
-        const { courseId } = req.params;
-        const studentId = req.user!.user_id;
-        const practicals = await submissionService.getPracticalWithSubmissionStatus(parseInt(courseId), studentId);
-        res.json(practicals);
     } catch (error) {
         next(error);
     }

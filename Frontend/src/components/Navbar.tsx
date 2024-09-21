@@ -26,7 +26,13 @@ const Navbar: React.FC = () => {
                   to="/practicals"
                   className="text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium"
                 >
-                  Practicals
+                  Students
+                </Link>
+                <Link
+                  to="/practicals"
+                  className="text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium"
+                >
+                  Faculty
                 </Link>
               </div>
             )}

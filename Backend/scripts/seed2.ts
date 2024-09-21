@@ -10,7 +10,27 @@ dotenv.config();
 
 async function seed(): Promise<void> {
   try {
+    // Disable foreign key checks
+    await db.execute(sql`SET FOREIGN_KEY_CHECKS = 0`);
 
+    // Truncate tables
+    await db.execute(sql`TRUNCATE TABLE batch`);
+    await db.execute(sql`TRUNCATE TABLE batch_practical_access`);
+    await db.execute(sql`TRUNCATE TABLE courses`);
+    await db.execute(sql`TRUNCATE TABLE courses_faculty`);
+    await db.execute(sql`TRUNCATE TABLE departments`);
+    await db.execute(sql`TRUNCATE TABLE faculty`);
+    await db.execute(sql`TRUNCATE TABLE practicals`);
+    await db.execute(sql`TRUNCATE TABLE prac_io`);
+    await db.execute(sql`TRUNCATE TABLE prac_language`);
+    await db.execute(sql`TRUNCATE TABLE programming_language`);
+    await db.execute(sql`TRUNCATE TABLE reports`);
+    await db.execute(sql`TRUNCATE TABLE students`);
+    await db.execute(sql`TRUNCATE TABLE submissions`);
+    await db.execute(sql`TRUNCATE TABLE users`);
+
+    // Enable foreign key checks
+    await db.execute(sql`SET FOREIGN_KEY_CHECKS = 1`);
 
     const languages = [
       { "id": 45, "name": "Assembly (NASM 2.14.02)" }, { "id": 46, "name": "Bash (5.0.0)" }, { "id": 47, "name": "Basic (FBC 1.07.1)" },
@@ -40,14 +60,13 @@ async function seed(): Promise<void> {
       });
     }
 
-
     // Helper function to hash passwords
     const hashPassword = async (password: string): Promise<string> => {
       return await bcrypt.hash(password, 10);
     };
 
     // Seed departments table
-    const departments: Array<{ name: string }> = [
+    const departments = [
       { name: "Computer Science" },
       { name: "Information Technology" },
       { name: "Artificial Intelligence and Data Science" },
@@ -62,169 +81,149 @@ async function seed(): Promise<void> {
     // Fetch inserted departments
     const insertedDepartments = await db.select().from(schema.departments);
 
-    // Seed users table with 1 Admin and 1 HOD for each department
-    interface UserInsert {
-      username: string;
-      password: string;
-      email: string;
-      role: "Admin" | "HOD" | "Faculty" | "Student";
-    }
+    // Seed users table with 1 Admin, 1 HOD for each department, and 5 Faculty members per department
+    const adminInserts: any[] = [];
+    const hodInserts: any[] = [];
+    const facultyInserts: any[] = [];
 
-    const adminInserts: UserInsert[] = [];
-    const hodInserts: UserInsert[] = [];
-    const facultyInserts: UserInsert[] = [];
+    // Fetch the maximum user_id from the users table
+    const [maxUserIdResult] = await db.execute(sql`SELECT MAX(user_id) as maxUserId FROM users`);
+    let nextUserId = maxUserIdResult[0].maxUserId + 1;
 
     for (const dept of insertedDepartments) {
-      const admin: UserInsert = {
+      const admin = {
         username: `admin_${dept.name.replace(/\s+/g, "_").toLowerCase()}`,
         password: await hashPassword("123456"),
-        email: `admin_${dept.name.toLowerCase()}@example.com`,
+        email: `admin_${dept.name.toLowerCase()}@example.com`.replace(/\s/g, ''),
         role: "Admin",
       };
-      const hod: UserInsert = {
+
+      const hod = {
         username: `hod_${dept.name.replace(/\s+/g, "_").toLowerCase()}`,
         password: await hashPassword("123456"),
-        email: `hod_${dept.name.toLowerCase()}@example.com`,
+        email: `hod_${dept.name.toLowerCase()}@example.com`.replace(/\s/g, ''),
         role: "HOD",
       };
+
       adminInserts.push(admin);
       hodInserts.push(hod);
 
       // Insert 5 Faculty members for each department
       for (let i = 1; i <= 5; i++) {
-        facultyInserts.push({
-          username: `${dept.name
-            .replace(/\s+/g, "_")
-            .toLowerCase()}_faculty${i}`,
-          password: await hashPassword(`123456`),
-          email: `${dept.name.toLowerCase()}_faculty${i}@example.com`,
+        const facultyUsername = `${dept.name.replace(/\s+/g, "_").toLowerCase()}_faculty${i}`;
+        const facultyEmail = `${facultyUsername}@example.com`;
+
+        // Insert into users table first
+        const [userResult] = await db.insert(schema.users).values({
+          user_id: nextUserId,
+          username: facultyUsername,
+          password: await bcrypt.hash("123456", 10),
+          email: facultyEmail,
           role: "Faculty",
         });
+        try {
+
+          // Insert into faculty table
+          await db.insert(schema.faculty).values({
+            faculty_id: nextUserId,
+            department_id: dept.department_id,
+          });
+        } catch (error) {
+          console.log(error)
+        }
+
+        nextUserId++;
       }
     }
 
-    // Insert Admins, HODs, and Faculty
-    await db
-      .insert(schema.users)
-      .values([...adminInserts, ...hodInserts, ...facultyInserts]);
+    // Insert Admins and HODs
+    await db.insert(schema.users).values([...adminInserts, ...hodInserts]);
 
     console.log("Admins, HODs, and Faculty seeded successfully");
+
+    // Fetch inserted faculty
+    const insertedFaculty = await db.select().from(schema.faculty);
 
     // Fetch inserted users (Admins, HODs, Faculty)
     const insertedUsers = await db.select().from(schema.users);
 
-    // Map departments to their respective HODs and Faculty
+    // Mapping Departments to HODs and Faculty
     const deptToHODMap: Record<number, number> = {};
     const deptToFacultyMap: Record<number, number[]> = {};
 
     insertedDepartments.forEach((dept, index) => {
-      deptToHODMap[dept.department_id] =
-        insertedUsers[adminInserts.length + index].user_id;
+      deptToHODMap[dept.department_id] = insertedUsers[adminInserts.length + index].user_id;
       deptToFacultyMap[dept.department_id] = insertedUsers
         .filter((user) => user.role === "Faculty")
         .slice(index * 5, (index + 1) * 5)
         .map((faculty) => faculty.user_id);
     });
 
-    // Insert faculty data
-    const facultyInsertData = insertedUsers
-      .filter((user) => user.role === "Faculty")
-      .map((faculty) => {
-        const departmentId = insertedDepartments.find((dept) =>
-          deptToFacultyMap[dept.department_id].includes(faculty.user_id)
-        )?.department_id;
-
-        return {
-          faculty_id: faculty.user_id,
-          department_id: departmentId,
-        };
-      });
-
-    await db.insert(schema.faculty).values(facultyInsertData);
-
-    console.log("Faculty data inserted successfully");
-
-    // Seed batch table with 8 semesters, 2 divisions per semester, 4 batches per division
-    interface BatchInsert {
-      department_id: number;
-      semester: number;
-      division: string;
-      batch: string;
+    // Create deptToFacultyMap
+    for (const faculty of insertedFaculty) {
+      if (!deptToFacultyMap[faculty.department_id]) {
+        deptToFacultyMap[faculty.department_id] = [];
+      }
+      deptToFacultyMap[faculty.department_id].push(faculty.faculty_id);
     }
 
-    const batchInserts: BatchInsert[] = [];
-
+    // Seed batches
+    const batchInserts: any[] = [];
     for (const dept of insertedDepartments) {
       for (let semester = 1; semester <= 8; semester++) {
         for (const division of ["A", "B"]) {
-          for (let batch = 1; batch <= 4; batch++) {
+          for (let batchNum = 1; batchNum <= 4; batchNum++) {
             batchInserts.push({
               department_id: dept.department_id,
-              semester: semester,
-              division: division,
-              batch: batch.toString(),
+              semester,
+              division,
+              batch: batchNum.toString(),
             });
           }
         }
       }
     }
-
     await db.insert(schema.batch).values(batchInserts);
-
     console.log("Batches seeded successfully");
 
     // Fetch inserted batches
     const insertedBatches = await db.select().from(schema.batch);
 
-    // Seed students table with 5 students per batch
-    interface StudentInsert {
-      student_id: number;
-      batch_id: number;
-      roll_id: string;
-    }
-
-    const studentInserts: StudentInsert[] = [];
-
+    // Seed students
     for (const batch of insertedBatches) {
       for (let i = 1; i <= 5; i++) {
         const studentUsername = `student_${batch.department_id}_${batch.semester}_${batch.division}_${batch.batch}_${i}`;
         const studentEmail = `${studentUsername}@example.com`;
-        const student: UserInsert = {
+
+        // Create a new user entry for the student
+        const student = {
           username: studentUsername,
           password: await hashPassword("123456"),
           email: studentEmail,
           role: "Student",
         };
-        await db.insert(schema.users).values(student);
 
-        // Fetch the inserted student ID
-        const insertedStudent = await db
-          .select({ user_id: schema.users.user_id })
-          .from(schema.users)
-          .where(sql`username = ${studentUsername}`)
-          .limit(1);
+        try {
+          // Insert the user into the `users` table and get the inserted ID
+          const [result] = await db.insert(schema.users).values(student);
+          const studentId = result.insertId;
 
-        studentInserts.push({
-          student_id: insertedStudent[0].user_id,
-          batch_id: batch.batch_id,
-          roll_id: `ROLL${batch.semester}${batch.division}${batch.batch}${i}`,
-        });
+          // Add the student to the `students` table, using the inserted user_id
+          await db.insert(schema.students).values({
+            student_id: studentId,
+            batch_id: batch.batch_id,
+            roll_id: `ROLL${batch.semester}${batch.division}${batch.batch}${i}`,
+          });
+
+          console.log(`Student ${studentUsername} inserted successfully.`);
+        } catch (error) {
+          console.error(`Error inserting student ${studentUsername}:`, error);
+        }
       }
     }
 
-    await db.insert(schema.students).values(studentInserts);
-
-    console.log("Students seeded successfully");
-
-    // Seed courses table with 2-3 courses per semester in each department
-    interface CourseInsert {
-      course_name: string;
-      course_code: string;
-      semester: number;
-      department_id: number;
-    }
-
-    const courseInserts: CourseInsert[] = [];
+    // Seed courses table
+    const courseInserts = [];
     const courseNames = [
       "Data Structures",
       "Database Management",
@@ -237,10 +236,8 @@ async function seed(): Promise<void> {
       for (let semester = 1; semester <= 8; semester++) {
         for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
           courseInserts.push({
-            course_name: `${courseNames[i % courseNames.length]
-              } Sem ${semester}`,
-            course_code: `${dept.name.charAt(0).toUpperCase()}S${semester}C${i + 1
-              }`,
+            course_name: `${courseNames[i % courseNames.length]} Sem ${semester}`,
+            course_code: `${dept.name.charAt(0).toUpperCase()}S${semester}C${i + 1}`,
             semester: semester,
             department_id: dept.department_id,
           });
@@ -249,27 +246,25 @@ async function seed(): Promise<void> {
     }
 
     await db.insert(schema.courses).values(courseInserts);
-
     console.log("Courses seeded successfully");
 
     // Fetch inserted courses
     const insertedCourses = await db.select().from(schema.courses);
 
-    // Seed courses_faculty table with courses linked to faculty and batches
-    interface CoursesFacultyInsert {
-      course_id: number;
-      faculty_id: number;
-      batch_id: number;
+    if (!insertedCourses || insertedCourses.length === 0) {
+      throw new Error("No courses were inserted. Please check the seeding process.");
     }
 
-    const coursesFacultyInserts: CoursesFacultyInsert[] = [];
+    // Seed courses_faculty table
+    const coursesFacultyInserts = [];
 
     for (const course of insertedCourses) {
       const departmentFaculties = deptToFacultyMap[course.department_id];
-      const faculty =
-        departmentFaculties[
-        Math.floor(Math.random() * departmentFaculties.length)
-        ];
+      if (!departmentFaculties || departmentFaculties.length === 0) {
+        console.warn(`No faculties found for department ${course.department_id}`);
+        continue;
+      }
+      const faculty = departmentFaculties[Math.floor(Math.random() * departmentFaculties.length)];
       const batches = insertedBatches.filter(
         (batch) =>
           batch.department_id === course.department_id &&
@@ -286,8 +281,121 @@ async function seed(): Promise<void> {
     }
 
     await db.insert(schema.courses_faculty).values(coursesFacultyInserts);
-
     console.log("Courses-Faculty-Batch associations seeded successfully");
+
+    // Seed practicals, prac_io, prac_language, batch_practical_access, and submissions
+    const practicalNames = [
+      "Practical 1",
+      "Practical 2",
+      "Practical 3",
+      "Practical 4",
+      "Practical 5",
+    ];
+
+    for (const course of insertedCourses) {
+      for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
+        // Insert the practical
+        const practical = {
+          practical_name: `${practicalNames[i % practicalNames.length]}`,
+          course_id: course.course_id,
+          description: `Description for ${practicalNames[i % practicalNames.length]} of ${course.course_name}`,
+          pdf_url: `http://example.com/pdfs/${course.course_code}_${practicalNames[i % practicalNames.length].replace(/\s+/g, "_").toLowerCase()}.pdf`,
+          sr_no: i + 1,
+          department_id: course.department_id,  // Inherit department_id from the course
+        };
+
+        const [practicalResult] = await db.insert(schema.practicals).values(practical);
+        const practicalId = practicalResult.insertId;
+
+        // 1. Insert into prac_io
+        const pracIoInserts = [];
+        for (let j = 0; j < 3; j++) {  // Assuming 3 IO pairs for each practical
+          pracIoInserts.push({
+            practical_id: practicalId,
+            input: `Input for practical ${practical.practical_name} ${j + 1}`,
+            output: `Output for practical ${practical.practical_name} ${j + 1}`,
+            isPublic: Math.random() > 0.5,  // Randomly set isPublic to true or false
+          });
+        }
+        await db.insert(schema.prac_io).values(pracIoInserts);
+
+        // 2. Insert into prac_language
+        const languagesForPractical = languages.slice(0, 3); // Assuming each practical supports 3 languages
+        const pracLanguageInserts = [];
+        for (const lang of languagesForPractical) {
+          pracLanguageInserts.push({
+            practical_id: practicalId,
+            programming_language_id: lang.id,
+          });
+        }
+        await db.insert(schema.prac_language).values(pracLanguageInserts);
+
+        // 3. Insert into batch_practical_access
+        const batchesForPractical = insertedBatches.filter(
+          (batch) => batch.department_id === course.department_id && batch.semester === course.semester
+        );
+
+        const batchPracticalAccessInserts = [];
+        for (const batch of batchesForPractical) {
+          batchPracticalAccessInserts.push({
+            practical_id: practicalId,
+            batch_id: batch.batch_id,
+            lock: Math.random() > 0.5,
+            deadline: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000),
+          });
+        }
+        await db.insert(schema.batch_practical_access).values(batchPracticalAccessInserts);
+
+        // // Fetch actual student IDs for the current course's department and semester
+        // const students = await db
+        //   .select()
+        //   .from(schema.students)
+        //   .innerJoin(schema.batch, sql`${schema.students.batch_id} = ${schema.batch.batch_id}`)
+        //   .where(sql`${schema.batch.department_id} = ${course.department_id} AND ${schema.batch.semester} = ${course.semester}`);
+
+        // if (students.length === 0) {
+        //   console.warn(`No students found for course ${course.course_id}, skipping submissions.`);
+        //   continue;  // Skip submission seeding if no students are found
+        // }
+
+        // const studentIds = students.map(student => student.student_id);
+
+        // const submissionInserts = [];
+        // for (const studentId of studentIds) {
+        //   const submissionCount = Math.floor(Math.random() * 6);  // 0 to 5 submissions per student
+        //   for (let k = 0; k < submissionCount; k++) {
+        //     submissionInserts.push({
+        //       practical_id: practicalId,
+        //       student_id: studentId,
+        //       code_submitted: `Code for submission ${k + 1} of practical ${practical.practical_name}`,
+        //       status: ['Accepted', 'Rejected', 'Pending'][Math.floor(Math.random() * 3)],
+        //       marks: Math.floor(Math.random() * 16),  // Marks out of 15
+        //       submission_time: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+        //     });
+        //   }
+        // }
+
+        // // Insert submissions if valid students exist
+        // if (submissionInserts.length > 0) {
+        //   await db.insert(schema.submissions).values(submissionInserts);
+        //   console.log(`Submissions for practical ${practical.practical_name} seeded successfully.`);
+        // } else {
+        //   console.warn(`No valid student IDs found for submissions.`);
+        // }
+
+      }
+    }
+
+
+    // Split submissionInserts into smaller batches
+    // const batchSize = 1000; // Adjust this value based on your needs
+    // for (let i = 0; i < submissionInserts.length; i += batchSize) {
+    //   const batch = submissionInserts.slice(i, i + batchSize);
+    //   await db.insert(schema.submissions).values(batch);
+    // }
+
+    // console.log("Submissions seeded successfully");
+
   } catch (error) {
     console.error("Error seeding data:", error);
   } finally {

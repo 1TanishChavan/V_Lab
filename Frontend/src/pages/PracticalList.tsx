@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, Pencil, Trash2, Users, Lock } from "lucide-react";
-import { format, parseISO } from "date-fns";
 
 const PracticalList = () => {
   const { courseId } = useParams();

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as facultyService from '../services/facultyService';
 import { AppError } from '../../src/utils/errors';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 
 export async function getFacultyByDepartment(req: Request, res: Response, next: NextFunction) {
     try {
@@ -25,5 +26,15 @@ export async function getAllFaculty(req: Request, res: Response, next: NextFunct
         } else {
             next(error);
         }
+    }
+}
+
+export async function getFacultyBatches(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const facultyId = req.user!.user_id;
+        const batches = await facultyService.getFacultyBatches(facultyId);
+        res.json(batches);
+    } catch (error) {
+        next(error);
     }
 }

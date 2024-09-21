@@ -10,11 +10,11 @@ import CourseUpdate from "./pages/CourseUpdate";
 import Courses from "./pages/Courses";
 import CourseAssign from "./pages/CourseAssign";
 import PracticalCreation from "./pages/PracticalCreation";
-import PracticalUpdate from "./pages/PracticalUpdate";
+// import PracticalUpdate from "./pages/PracticalUpdate";
 import PracticalSubmission from "./pages/PracticalSubmission";
 import PracticalList from "./pages/PracticalList";
-import Dashboard from "./pages/Dashboard";
-import Batch from "./pages/Batch";
+// import Dashboard from "./pages/Dashboard";
+// import Batch from "./pages/Batch";
 import AuthTabs from "./pages/AuthTabs";
 import CodingEnvironmentPage from "./pages/CodeEnv";
 import PracticalSubmissionDetails from "./pages/PracticalSubmissionDetails";
@@ -39,7 +39,7 @@ const App: React.FC = () => {
             <Routes>
               <Route
                 path="/"
-                element={isAuthenticated ? <Dashboard /> : <AuthTabs />}
+                element={isAuthenticated ? <Courses /> : <AuthTabs />}
               />
               {/* <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} /> */}
@@ -57,7 +57,7 @@ const App: React.FC = () => {
               />
               <Route
                 path="/practical-update/:courseId/:practicalId"
-                element={<PracticalUpdate />}
+                // element={<PracticalUpdate />}
               />
               <Route
                 path="/practical-submission/:courseId/:practicalId"
@@ -72,7 +72,7 @@ const App: React.FC = () => {
                 element={<CodingEnvironmentPage />}
               />
               <Route path="/batches" element={<PracticalList />} />
-              <Route path="/dashboard" element={<Batch />} />
+              {/* <Route path="/dashboard" element={<Batch />} /> */}
             </Routes>
           </div>
         </Layout>
