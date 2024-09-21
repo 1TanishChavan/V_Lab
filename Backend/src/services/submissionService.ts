@@ -160,3 +160,78 @@ export async function getFacultyBatches(facultyId: number) {
         throw new AppError(500, 'Failed to fetch faculty batches');
     }
 }
+
+export async function getStudentSubmissions(studentId: number) {
+    try {
+        const studentSubmissions = await db
+            .select({
+                submission_id: submissions.submission_id,
+                practical_id: submissions.practical_id,
+                practical_sr_no: practicals.sr_no,
+                practical_name: practicals.practical_name,
+                course_name: courses.course_name,
+                submission_time: submissions.submission_time,
+                status: submissions.status,
+                marks: submissions.marks,
+            })
+            .from(submissions)
+            .innerJoin(practicals, eq(submissions.practical_id, practicals.practical_id))
+            .innerJoin(courses, eq(practicals.course_id, courses.course_id))
+            .where(eq(submissions.student_id, studentId));
+
+        return studentSubmissions;
+    } catch (error) {
+        console.error('Error in getStudentSubmissions:', error);
+        throw new AppError(500, 'Failed to fetch student submissions');
+    }
+}
+
+export async function getStudentDetails(studentId: number) {
+    try {
+        const studentDetails = await db
+            .select({
+                student_id: students.student_id,
+                name: users.username,
+                email: users.email,
+                roll_id: students.roll_id,
+                semester: batch.semester,
+                division: batch.division,
+                batch: batch.batch,
+            })
+            .from(students)
+            .innerJoin(users, eq(students.student_id, users.user_id))
+            .innerJoin(batch, eq(students.batch_id, batch.batch_id))
+            .where(eq(students.student_id, studentId))
+            .limit(1);
+
+        return studentDetails[0];
+    } catch (error) {
+        console.error('Error in getStudentDetails:', error);
+        throw new AppError(500, 'Failed to fetch student details');
+    }
+}
+
+export async function updateStudent(studentId: number, updateData: Partial<typeof students.$inferSelect>) {
+    try {
+        await db.update(students)
+            .set(updateData)
+            .where(eq(students.student_id, studentId));
+
+        // Fetch and return the updated student details
+        const updatedStudent = await getStudentDetails(studentId);
+        return updatedStudent;
+    } catch (error) {
+        console.error('Error in updateStudent:', error);
+        throw new AppError(500, 'Failed to update student');
+    }
+}
+
+export async function deleteStudent(studentId: number) {
+    try {
+        await db.delete(students)
+            .where(eq(students.student_id, studentId));
+    } catch (error) {
+        console.error('Error in deleteStudent:', error);
+        throw new AppError(500, 'Failed to delete student');
+    }
+}

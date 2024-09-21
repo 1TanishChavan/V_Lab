@@ -57,3 +57,43 @@ export async function updateSubmission(req: AuthenticatedRequest, res: Response,
         next(error);
     }
 }
+export async function getStudentSubmissions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { studentId } = req.params;
+        const submissions = await submissionService.getStudentSubmissions(parseInt(studentId));
+        res.json(submissions);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function getStudentDetails(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { studentId } = req.params;
+        const studentDetails = await submissionService.getStudentDetails(parseInt(studentId));
+        res.json(studentDetails);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function updateStudent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { studentId } = req.params;
+        const updateData = req.body;
+        const updatedStudent = await submissionService.updateStudent(parseInt(studentId), updateData);
+        res.json(updatedStudent);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function deleteStudent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { studentId } = req.params;
+        await submissionService.deleteStudent(parseInt(studentId));
+        res.status(204).send();
+    } catch (error) {
+        next(error);
+    }
+}

@@ -25,7 +25,7 @@ import {
   BreadcrumbLink,
 } from "@/components/ui/breadcrumb";
 
-const SubmissionDetailsPage = () => {
+const PracticalSubmissionDetails = () => {
   const { practicalId, submissionId } = useParams();
   const [submission, setSubmission] = useState(null);
   const [status, setStatus] = useState("");
@@ -35,7 +35,7 @@ const SubmissionDetailsPage = () => {
 
   useEffect(() => {
     fetchSubmissionDetails();
-  }, []);
+  }, [submissionId]);
 
   const fetchSubmissionDetails = async () => {
     try {
@@ -99,54 +99,60 @@ const SubmissionDetailsPage = () => {
         </BreadcrumbItem>
       </Breadcrumb>
 
-      <Card>
+      <Card className="w-full max-w-3xl mx-auto">
         <CardHeader>
           <CardTitle>Submission Details</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <Label>Student Name:</Label>
-              <div>{submission.student_name}</div>
-            </div>
-            <div>
-              <Label>Roll ID:</Label>
-              <div>{submission.roll_id}</div>
-            </div>
-            <div>
-              <Label>Batch:</Label>
-              <div>{submission.batch_name}</div>
-            </div>
-            <div>
-              <Label>Practical SR No:</Label>
-              <div>{submission.practical_sr_no}</div>
-            </div>
-            <div>
-              <Label>Practical Name:</Label>
-              <div>{submission.practical_name}</div>
-            </div>
-            <div>
-              <Label>Course Name:</Label>
-              <div>{submission.course_name}</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Student Name:</Label>
+                <div>{submission.student_name}</div>
+              </div>
+              <div>
+                <Label>Roll ID:</Label>
+                <div>{submission.roll_id}</div>
+              </div>
+              <div>
+                <Label>Batch:</Label>
+                <div>{submission.batch_name}</div>
+              </div>
+              <div>
+                <Label>Practical SR No:</Label>
+                <div>{submission.practical_sr_no}</div>
+              </div>
+              <div>
+                <Label>Practical Name:</Label>
+                <div>{submission.practical_name}</div>
+              </div>
+              <div>
+                <Label>Course Name:</Label>
+                <div>{submission.course_name}</div>
+              </div>
+              <div>
+                <Label>Submission Time:</Label>
+                <div>
+                  {new Date(submission.submission_time).toLocaleString()}
+                </div>
+              </div>
             </div>
             <div>
               <Label>Practical Input/Output:</Label>
-              <div>{submission.prac_io}</div>
-            </div>
-            <div>
-              <Label>Submission Time:</Label>
-              <div>{new Date(submission.submission_time).toLocaleString()}</div>
+              <div className="bg-gray-100 p-2 rounded">
+                {submission.prac_io}
+              </div>
             </div>
             <div>
               <Label>Code Submitted:</Label>
-              <pre className="bg-gray-100 p-2 rounded">
+              <pre className="bg-gray-100 p-2 rounded overflow-x-auto">
                 {submission.code_submitted}
               </pre>
             </div>
             <div>
               <Label htmlFor="status">Status:</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,11 +174,13 @@ const SubmissionDetailsPage = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleUpdate}>Update Submission</Button>
+          <Button onClick={handleUpdate} className="w-full">
+            Update Submission
+          </Button>
         </CardFooter>
       </Card>
     </div>
   );
 };
 
-export default SubmissionDetailsPage;
+export default PracticalSubmissionDetails;
