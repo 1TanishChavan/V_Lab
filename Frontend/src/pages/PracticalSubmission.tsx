@@ -100,7 +100,7 @@ const PracticalSubmissionPage = () => {
   };
 
   const handleViewSubmission = (submissionId) => {
-    navigate(`/practical-submission/${practicalId}/${submissionId}`);
+    navigate(`/practical-submission-details/${practicalId}/${submissionId}`);
   };
 
   const filterSubmissions = () => {

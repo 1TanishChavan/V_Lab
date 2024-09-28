@@ -15,6 +15,11 @@ const api = axios.create({
 //     return config;
 // });
 
+export const fetchDepartments = () => api.get('/students/departments');
+export const fetchSemesters = () => api.get('/students/semesters');
+export const fetchDivisions = () => api.get('/students/divisions');
+export const fetchBatches = () => api.get('/students/batches');
+
 export const login = async (email: string, password: string) => api.post('/auth/login', { email, password });
 export const register = (userData: any) => api.post('/auth/register', userData);
 
