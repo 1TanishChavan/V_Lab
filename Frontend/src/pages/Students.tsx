@@ -33,10 +33,14 @@ import { Label } from "@/components/ui/label";
 
 const StudentsPage = () => {
   const [students, setStudents] = useState([]);
-  const [department, setDepartment] = useState("");
-  const [semester, setSemester] = useState("");
-  const [division, setDivision] = useState("");
-  const [batch, setBatch] = useState("");
+  const [departments, setDepartments] = useState([]);
+  const [semesters, setSemesters] = useState([]);
+  const [divisions, setDivisions] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedDivision, setSelectedDivision] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingStudent, setEditingStudent] = useState(null);
   const { toast } = useToast();
@@ -44,12 +48,21 @@ const StudentsPage = () => {
 
   useEffect(() => {
     fetchStudents();
-  }, [department, semester, division, batch]);
+    fetchDepartments();
+    fetchSemesters();
+    fetchDivisions();
+    fetchBatches();
+  }, [selectedDepartment, selectedSemester, selectedDivision, selectedBatch]);
 
   const fetchStudents = async () => {
     try {
       const response = await api.get("/students", {
-        params: { department, semester, division, batch },
+        params: {
+          department: selectedDepartment,
+          semester: selectedSemester,
+          division: selectedDivision,
+          batch: selectedBatch,
+        },
       });
       setStudents(response.data);
     } catch (error) {
@@ -59,6 +72,42 @@ const StudentsPage = () => {
         description: "Failed to fetch students. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await api.get("/departments");
+      setDepartments(response.data);
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    }
+  };
+
+  const fetchSemesters = async () => {
+    try {
+      const response = await api.get("/semesters");
+      setSemesters(response.data);
+    } catch (error) {
+      console.error("Error fetching semesters:", error);
+    }
+  };
+
+  const fetchDivisions = async () => {
+    try {
+      const response = await api.get("/divisions");
+      setDivisions(response.data);
+    } catch (error) {
+      console.error("Error fetching divisions:", error);
+    }
+  };
+
+  const fetchBatches = async () => {
+    try {
+      const response = await api.get("/batches");
+      setBatches(response.data);
+    } catch (error) {
+      console.error("Error fetching batches:", error);
     }
   };
 
@@ -121,29 +170,45 @@ const StudentsPage = () => {
     <div className="container mx-auto mt-4 p-4">
       <h1 className="text-2xl font-bold mb-4">Students</h1>
       <div className="flex flex-wrap gap-4 mb-4">
-        <Select value={department} onValueChange={setDepartment}>
+        <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Department" />
           </SelectTrigger>
-          <SelectContent>{/* Add department options */}</SelectContent>
+          <SelectContent>
+            {departments.map((dept) => (
+              <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+            ))}
+          </SelectContent>
         </Select>
-        <Select value={semester} onValueChange={setSemester}>
+        <Select value={selectedSemester} onValueChange={setSelectedSemester}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Semester" />
           </SelectTrigger>
-          <SelectContent>{/* Add semester options */}</SelectContent>
+          <SelectContent>
+            {semesters.map((sem) => (
+              <SelectItem key={sem.id} value={sem.id}>{sem.name}</SelectItem>
+            ))}
+          </SelectContent>
         </Select>
-        <Select value={division} onValueChange={setDivision}>
+        <Select value={selectedDivision} onValueChange={setSelectedDivision}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Division" />
           </SelectTrigger>
-          <SelectContent>{/* Add division options */}</SelectContent>
+          <SelectContent>
+            {divisions.map((div) => (
+              <SelectItem key={div.id} value={div.id}>{div.name}</SelectItem>
+            ))}
+          </SelectContent>
         </Select>
-        <Select value={batch} onValueChange={setBatch}>
+        <Select value={selectedBatch} onValueChange={setSelectedBatch}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Batch" />
           </SelectTrigger>
-          <SelectContent>{/* Add batch options */}</SelectContent>
+          <SelectContent>
+            {batches.map((batch) => (
+              <SelectItem key={batch.id} value={batch.id}>{batch.name}</SelectItem>
+            ))}
+          </SelectContent>
         </Select>
         <Input
           type="text"
