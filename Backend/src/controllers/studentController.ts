@@ -48,3 +48,74 @@ export async function getStudentsByDepartmentAndSemester(req: Request, res: Resp
         }
     }
 }
+
+export async function getStudentsWithFilters(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { department, semester, division, batch } = req.query;
+        const students = await studentService.getStudentsWithFilters({
+            department: department as string,
+            semester: semester as string,
+            division: division as string,
+            batch: batch as string,
+        });
+        res.json(students);
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            next(error);
+        }
+    }
+}
+
+export async function getDepartments(req: Request, res: Response, next: NextFunction) {
+    try {
+        const departments = await studentService.getDepartments();
+        res.json(departments);
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            next(error);
+        }
+    }
+}
+
+export async function getSemesters(req: Request, res: Response, next: NextFunction) {
+    try {
+        const semesters = await studentService.getSemesters();
+        res.json(semesters);
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            next(error);
+        }
+    }
+}
+
+export async function getDivisions(req: Request, res: Response, next: NextFunction) {
+    try {
+        const divisions = await studentService.getDivisions();
+        res.json(divisions);
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            next(error);
+        }
+    }
+}
+
+export async function getBatches(req: Request, res: Response, next: NextFunction) {
+    try {
+        const batches = await studentService.getBatches();
+        res.json(batches);
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message });
+        } else {
+            next(error);
+        }
+    }
+}

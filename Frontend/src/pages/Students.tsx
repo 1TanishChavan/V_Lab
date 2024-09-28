@@ -1,3 +1,5 @@
+// Frontend/src/pages/Students.tsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -32,11 +34,15 @@ import {
 import { Label } from "@/components/ui/label";
 
 const StudentsPage = () => {
-  const [students, setStudents] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [semesters, setSemesters] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [batches, setBatches] = useState([]);
+  const [students, setStudents] = useState([]);
+  // const [departments, setDepartments] = useState([]);
+  // const [semesters, setSemesters] = useState([]);
+  // const [divisions, setDivisions] = useState([]);
+  // const [batches, setBatches] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedDivision, setSelectedDivision] = useState("");
@@ -45,6 +51,37 @@ const StudentsPage = () => {
   const [editingStudent, setEditingStudent] = useState(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchDropdownOptions();
+    fetchStudents();
+  }, []);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [department, semester, division, batch]);
+
+  const fetchDropdownOptions = async () => {
+    try {
+      const [deptRes, semRes, divRes, batchRes] = await Promise.all([
+        api.get("/students/departments"),
+        api.get("/students/semesters"),
+        api.get("/students/divisions"),
+        api.get("/students/batches"),
+      ]);
+      setDepartments(deptRes.data);
+      setSemesters(semRes.data);
+      setDivisions(divRes.data);
+      setBatches(batchRes.data);
+    } catch (error) {
+      console.error("Error fetching dropdown options:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch dropdown options. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     fetchStudents();
@@ -170,174 +207,159 @@ const StudentsPage = () => {
     <div className="container mx-auto mt-4 p-4">
       <h1 className="text-2xl font-bold mb-4">Students</h1>
       <div className="flex flex-wrap gap-4 mb-4">
-        <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+        <Select value={department} onValueChange={setDepartment}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Department" />
           </SelectTrigger>
-          <SelectContent>
-            {departments.map((dept) => (
-              <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-            ))}
-          </SelectContent>
+          <SelectContent>{/* Add department options */}</SelectContent>
         </Select>
-        <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+        <Select value={semester} onValueChange={setSemester}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Semester" />
           </SelectTrigger>
-          <SelectContent>
-            {semesters.map((sem) => (
-              <SelectItem key={sem.id} value={sem.id}>{sem.name}</SelectItem>
-            ))}
-          </SelectContent>
+          <SelectContent>{/* Add semester options */}</SelectContent>
         </Select>
-        <Select value={selectedDivision} onValueChange={setSelectedDivision}>
+        <Select value={division} onValueChange={setDivision}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Division" />
           </SelectTrigger>
-          <SelectContent>
-            {divisions.map((div) => (
-              <SelectItem key={div.id} value={div.id}>{div.name}</SelectItem>
-            ))}
-          </SelectContent>
+          <SelectContent>{/* Add division options */}</SelectContent>
         </Select>
-        <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+        <Select value={batch} onValueChange={setBatch}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Batch" />
           </SelectTrigger>
-          <SelectContent>
-            {batches.map((batch) => (
-              <SelectItem key={batch.id} value={batch.id}>{batch.name}</SelectItem>
-            ))}
-          </SelectContent>
+          <SelectContent>{/* Add batch options */}</SelectContent>
         </Select>
         <Input
           type="text"
           placeholder="Search by Roll ID"
           value={searchQuery}
           onChange={handleSearch}
-          className="w-[200px]"
         />
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Roll ID</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Semester</TableHead>
-            <TableHead>Division</TableHead>
-            <TableHead>Batch</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredStudents.map((student) => (
-            <TableRow key={student.student_id}>
-              <TableCell>{student.name}</TableCell>
-              <TableCell>{student.roll_id}</TableCell>
-              <TableCell>{student.email}</TableCell>
-              <TableCell>{student.semester}</TableCell>
-              <TableCell>{student.division}</TableCell>
-              <TableCell>{student.batch}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Drawer>
-                    <DrawerTrigger asChild>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleEdit(student)}
-                      >
-                        Edit
-                      </Button>
-                    </DrawerTrigger>
-                    <DrawerContent>
-                      <DrawerHeader>
-                        <DrawerTitle>Edit Student</DrawerTitle>
-                        <DrawerDescription>
-                          Make changes to student details here.
-                        </DrawerDescription>
-                      </DrawerHeader>
-                      <div className="p-4 space-y-4">
-                        <div>
-                          <Label htmlFor="name">Name</Label>
-                          <Input
-                            id="name"
-                            value={editingStudent?.name || ""}
-                            onChange={(e) =>
-                              setEditingStudent({
-                                ...editingStudent,
-                                name: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            value={editingStudent?.email || ""}
-                            onChange={(e) =>
-                              setEditingStudent({
-                                ...editingStudent,
-                                email: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="semester">Semester</Label>
-                          <Input
-                            id="semester"
-                            value={editingStudent?.semester || ""}
-                            onChange={(e) =>
-                              setEditingStudent({
-                                ...editingStudent,
-                                semester: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="division">Division</Label>
-                          <Input
-                            id="division"
-                            value={editingStudent?.division || ""}
-                            onChange={(e) =>
-                              setEditingStudent({
-                                ...editingStudent,
-                                division: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                      <DrawerFooter>
-                        <Button onClick={() => handleUpdate(editingStudent)}>
-                          Save changes
-                        </Button>
-                        <DrawerClose asChild>
-                          <Button variant="outline">Cancel</Button>
-                        </DrawerClose>
-                      </DrawerFooter>
-                    </DrawerContent>
-                  </Drawer>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDelete(student.student_id)}
-                  >
-                    Delete
-                  </Button>
-                  <Button
-                    onClick={() => handleViewSubmissions(student.student_id)}
-                  >
-                    View Submissions
-                  </Button>
-                </div>
-              </TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Roll ID</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Semester</TableHead>
+              <TableHead>Division</TableHead>
+              <TableHead>Batch</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {filteredStudents.map((student) => (
+              <TableRow key={student.student_id}>
+                <TableCell>{student.name}</TableCell>
+                <TableCell>{student.roll_id}</TableCell>
+                <TableCell>{student.email}</TableCell>
+                <TableCell>{student.semester}</TableCell>
+                <TableCell>{student.division}</TableCell>
+                <TableCell>{student.batch}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Drawer>
+                      <DrawerTrigger asChild>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleEdit(student)}
+                        >
+                          Edit
+                        </Button>
+                      </DrawerTrigger>
+                      <DrawerContent>
+                        <DrawerHeader>
+                          <DrawerTitle>Edit Student</DrawerTitle>
+                          <DrawerDescription>
+                            Make changes to student details here.
+                          </DrawerDescription>
+                        </DrawerHeader>
+                        <div className="p-4 space-y-4">
+                          <div>
+                            <Label htmlFor="name">Name</Label>
+                            <Input
+                              id="name"
+                              value={editingStudent?.name || ""}
+                              onChange={(e) =>
+                                setEditingStudent({
+                                  ...editingStudent,
+                                  name: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                              id="email"
+                              value={editingStudent?.email || ""}
+                              onChange={(e) =>
+                                setEditingStudent({
+                                  ...editingStudent,
+                                  email: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="semester">Semester</Label>
+                            <Input
+                              id="semester"
+                              value={editingStudent?.semester || ""}
+                              onChange={(e) =>
+                                setEditingStudent({
+                                  ...editingStudent,
+                                  semester: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="division">Division</Label>
+                            <Input
+                              id="division"
+                              value={editingStudent?.division || ""}
+                              onChange={(e) =>
+                                setEditingStudent({
+                                  ...editingStudent,
+                                  division: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                        <DrawerFooter>
+                          <Button onClick={() => handleUpdate(editingStudent)}>
+                            Save changes
+                          </Button>
+                          <DrawerClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                          </DrawerClose>
+                        </DrawerFooter>
+                      </DrawerContent>
+                    </Drawer>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(student.student_id)}
+                    >
+                      Delete
+                    </Button>
+                    <Button
+                      onClick={() => handleViewSubmissions(student.student_id)}
+                    >
+                      View Submissions
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
