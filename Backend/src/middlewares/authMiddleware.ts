@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwtUtils';
 import { AppError } from '../utils/errors';
+import jwt from 'jsonwebtoken';
 import { getUserById } from 'services/userService';
 
 export interface AuthenticatedRequest extends Request {

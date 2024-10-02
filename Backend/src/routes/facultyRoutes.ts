@@ -1,18 +1,24 @@
 import express from 'express';
-import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from 'controllers/departmentController';
-import { getFacultyDetails } from 'controllers/facultyController';
-import { getFacultyByDepartment, getAllFaculty, getFacultyBatches } from 'controllers/facultyController';
-import { authMiddleware, roleMiddleware } from 'middlewares/authMiddleware';
+import {
+    addFaculty,
+    getFacultyByDepartment,
+    getAllFaculty,
+    getFacultyBatches,
+} from '../controllers/facultyController';
+import { authMiddleware, roleMiddleware } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
-// Department routes
-router.get('/departments', authMiddleware, getDepartments);
+// Create a new faculty member (Admin/HOD access)
+router.post('/', authMiddleware, roleMiddleware(['Admin', 'HOD']), addFaculty);
 
-// Faculty routes
-router.get('/batches', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getFacultyBatches);
-router.get('/:facultyId', authMiddleware, getFacultyDetails);
+// Get all faculty members (Admin/HOD access)
+router.get('/all', authMiddleware, roleMiddleware(['Admin', 'HOD']), getAllFaculty);
+
+// Get faculty by department
 router.get('/department/:departmentId', authMiddleware, getFacultyByDepartment);
-router.get('/all', authMiddleware, getAllFaculty);
+
+// Get faculty batches
+router.get('/batches/:facultyId', authMiddleware, getFacultyBatches);
 
 export default router;

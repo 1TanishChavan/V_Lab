@@ -109,7 +109,7 @@ CREATE TABLE `users` (
 	`password` varchar(225) NOT NULL,
 	`email` varchar(225) NOT NULL,
 	`role` enum('Student','Faculty','HOD','Admin') NOT NULL,
-	`pdf_url` varchar(255),
+	-- `pdf_url` varchar(255),
 	CONSTRAINT `users_user_id` PRIMARY KEY(`user_id`)
 );
 
