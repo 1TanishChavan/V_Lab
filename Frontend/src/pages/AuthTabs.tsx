@@ -151,7 +151,7 @@ const AuthTabs: React.FC = () => {
   };
 
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
-    try {
+    try { 
       await register(values);
       toast({
         title: "Registration Successful",
@@ -290,7 +290,7 @@ const AuthTabs: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                  {/* <FormField
                     control={registerForm.control}
                     name="role"
                     render={({ field }) => (
@@ -314,7 +314,7 @@ const AuthTabs: React.FC = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
                   <FormField
                     control={registerForm.control}
                     name="department_id"
@@ -345,8 +345,8 @@ const AuthTabs: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  {registerForm.watch("role") === "Student" && (
-                    <>
+                  {/* {registerForm.watch("role") === "Student" && (
+                    <> */}
                       <FormField
                         control={registerForm.control}
                         name="roll_id"
@@ -409,16 +409,12 @@ const AuthTabs: React.FC = () => {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {batches
-                                  .filter((b) => b.division)
-                                  .map((b) => (
-                                    <SelectItem
-                                      key={b.division}
-                                      value={b.division.toString()}
-                                    >
-                                      {b.division}
-                                    </SelectItem>
-                                  ))}
+                                {/* Filter to get unique divisions */}
+                                {[...new Set(batches.map((b) => b.division))].map((division) => (
+                                  <SelectItem key={division} value={division}>
+                                    {division}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -441,18 +437,11 @@ const AuthTabs: React.FC = () => {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
+                                {/* Filter batches based on selected division */}
                                 {batches
-                                  .filter(
-                                    (b) =>
-                                      b.batch_id &&
-                                      b.division ===
-                                        registerForm.watch("division")
-                                  )
+                                  .filter((b) => b.division === registerForm.watch("division"))
                                   .map((b) => (
-                                    <SelectItem
-                                      key={b.batch_id}
-                                      value={b.batch_id.toString()}
-                                    >
+                                    <SelectItem key={b.batch_id} value={b.batch_id.toString()}>
                                       {b.batch}
                                     </SelectItem>
                                   ))}
@@ -462,8 +451,8 @@ const AuthTabs: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                    </>
-                  )}
+                    {/* </>
+                  )} */}
                   <Button type="submit">Register</Button>
                 </form>
               </Form>

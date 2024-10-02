@@ -57,7 +57,7 @@ export const insertPracticalSchema = Type.Object({
     practical_name: Type.String(),
     course_id: Type.Number(),
     description: Type.String(),
-    pdf_url: Type.Optional(Type.String({ format: 'uri' })),
+    // pdf_url: Type.Optional(Type.String({ format: 'uri' })),
     prac_io: Type.Array(Type.Object({
         input: Type.String(),
         output: Type.String(),

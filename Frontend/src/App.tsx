@@ -21,6 +21,7 @@ import StudentSubmissions from "./pages/StudentSubmissions";
 import FacultyDetails from "./pages/Faculty";
 import CodingEnvironmentPage from "./pages/CodeEnv";
 import PracticalSubmissionDetails from "./pages/PracticalSubmissionDetails";
+import Department from "./pages/Department";
 
 const App: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -86,6 +87,7 @@ const App: React.FC = () => {
                 element={<StudentSubmissions />}
               />
               <Route path="/faculty" element={<FacultyDetails />} />
+              <Route path="/departments" element={<Department />} />
               {/* <Route
                 path="/view-code/:submissionId"
                 element={<ViewCodePage />}

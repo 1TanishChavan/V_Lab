@@ -24,7 +24,7 @@ export const users = mysqlTable('users', {
     password: varchar('password', { length: 225 }).notNull(),
     email: varchar('email', { length: 225 }).notNull(),
     role: mysqlEnum('role', ['Student', 'Faculty', 'HOD', 'Admin']).notNull(),
-    photo_url: varchar('pdf_url', { length: 255 }), // Added field for storing PDF URL
+    // photo_url: varchar('pdf_url', { length: 255 }), // Added field for storing PDF URL
 }, (table) => ({
     usernameIndex: index('username_idx').on(table.username),
     emailIndex: index('email_idx').on(table.email),
