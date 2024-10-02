@@ -42,6 +42,14 @@ const Navbar: React.FC = () => {
                     Department
                   </Link>
                 )}
+                {(user?.role === 'Admin' || user?.role === 'HOD') && (  // Check if user is admin
+                  <Link
+                    to="/division"
+                    className="text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium"
+                  >
+                    Division
+                  </Link>
+                )}
               </div>
             )}
           </div>
