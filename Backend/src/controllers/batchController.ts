@@ -3,14 +3,21 @@ import * as batchService from '../services/batchService';
 import { AppError } from '../../src/utils/errors';
 import { AuthenticatedRequest } from '../../src/middlewares/authMiddleware';
 
-export async function getBatches(req: Request, res: Response, next: NextFunction) {
+// Fetch batches and divisions
+export async function getBatches(req: Request, res: Response) {
+    const { department_id, semester } = req.query;
+  
     try {
-        const batches = await batchService.getAllBatches();
-        res.json(batches);
+      const batches = await batchService.getBatches({
+        department_id: parseInt(department_id as string),
+        semester: parseInt(semester as string),
+      });
+      res.status(200).json(batches);
     } catch (error) {
-        next(error);
+      console.error("Error fetching batches:", error);
+      res.status(500).json({ error: "Failed to fetch batches" });
     }
-}
+  }
 
 export async function createBatch(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
@@ -46,5 +53,27 @@ export async function getBatchesByDepartmentAndSemester(req: Request, res: Respo
         res.json(batches);
     } catch (error) {
         next(error);
+    }
+}
+
+// Add batch and division
+export async function addBatch(req: Request, res: Response) {
+    const { department_id, semester, division, batch } = req.body;
+  
+    if (!department_id || !semester || !division || !batch) {
+      throw new AppError(400, 'Missing required fields');
+    }
+  
+    try {
+      const newBatch = await batchService.addBatch({
+        department_id,
+        semester,
+        division,
+        batch,
+      });
+      res.status(201).json(newBatch);
+    } catch (error) {
+      console.error("Error adding batch:", error);
+      res.status(500).json({ error: "Failed to add batch" });
     }
 }
