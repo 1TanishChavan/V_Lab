@@ -82,7 +82,7 @@ const AddDivisionBatch: React.FC = () => {
         Open Batch Form
       </Button>
 
-      <Card className="mt-4">
+      {/* <Card className="mt-4">
         <CardHeader>
           <CardTitle>Added Batches and Divisions</CardTitle>
         </CardHeader>
@@ -99,7 +99,7 @@ const AddDivisionBatch: React.FC = () => {
             <p>No batches added yet.</p>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerContent>

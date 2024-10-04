@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useToast } from "@/components/hooks/use-toast";
+import bcrypt from "bcryptjs";
 import {
   Table,
   TableBody,
@@ -95,7 +96,10 @@ const FacultyPage = () => {
   // Handle addition of Faculty
   const handleAddFaculty = async () => {
     try {
-      await addFaculty(newFaculty);
+      const hashedPassword = await bcrypt.hash(newFaculty.password, 10);
+      const facultyData  = { ...newFaculty, password: hashedPassword }; 
+
+      await addFaculty(facultyData);
       toast({
         title: "Success",
         description: "Faculty added successfully.",
@@ -123,7 +127,10 @@ const FacultyPage = () => {
   // Handle addition of HOD
   const handleAddHOD = async () => {
     try {
-      await addFaculty(newHOD);
+      const hashedPassword = await bcrypt.hash(newHOD.password, 10);
+      const hodData = { ...newHOD, password: hashedPassword };
+
+      await addFaculty(hodData);
       toast({
         title: "Success",
         description: "HOD added successfully.",
@@ -316,7 +323,6 @@ const FacultyPage = () => {
           <TableRow>
             <TableHead>Username</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
             <TableHead>Actions</TableHead> {/* New Actions column */}
           </TableRow>
         </TableHeader>
@@ -325,7 +331,6 @@ const FacultyPage = () => {
             <TableRow key={member.faculty_id}>
               <TableCell>{member.username}</TableCell>
               <TableCell>{member.email}</TableCell>
-              <TableCell>{member.role}</TableCell>
               <TableCell>
                 {/* Delete button */}
                 <Button
