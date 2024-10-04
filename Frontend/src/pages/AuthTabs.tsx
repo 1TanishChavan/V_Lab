@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useDepartmentStore } from "../store/departmentStore";
-import { useBatchStore } from "../store/batchStore";
+// import { useBatchStore } from "../store/batchStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -44,7 +44,7 @@ const registerSchema = z.object({
   username: z.string().min(3),
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum(["Student", "Faculty", "HOD"]),
+  // role: z.enum(["Student", "Faculty", "HOD"]),
   department_id: z.string(),
   semester: z.string().optional(),
   division: z.string().optional(),
@@ -151,7 +151,7 @@ const AuthTabs: React.FC = () => {
   };
 
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
-    try { 
+    try {
       await register(values);
       toast({
         title: "Registration Successful",

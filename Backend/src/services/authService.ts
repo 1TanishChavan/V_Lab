@@ -17,7 +17,6 @@ export async function registerUser(userData: any) {
         password: hashedPassword,
         role: userData.role,
     });
-    console.log(result)
 
     const newUser = await db.select().from(users).where(eq(users.user_id, result[0].insertId)).limit(1);
 
