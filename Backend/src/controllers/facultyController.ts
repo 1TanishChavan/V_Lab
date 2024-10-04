@@ -40,10 +40,25 @@ export async function getAllFaculty(req: Request, res: Response, next: NextFunct
 // Get faculty batches
 export async function getFacultyBatches(req: Request, res: Response, next: NextFunction) {
     try {
-        const facultyId = parseInt(req.params.facultyId, 10); // Assuming facultyId is passed in params
+        const facultyId = parseInt(req.params.facultyId, 10);
         const batches = await facultyService.getFacultyBatches(facultyId);
         res.json(batches);
     } catch (error) {
         next(error);
+    }
+}
+
+// Delete a faculty member
+export async function deleteFaculty(req: Request, res: Response, next: NextFunction) {
+    try {
+        const facultyId = parseInt(req.params.facultyId, 10);
+
+        // Call the service to delete the faculty and the user
+        await facultyService.deleteFaculty(facultyId);
+
+        res.status(200).json({ message: 'Faculty deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting faculty:', error);
+        next(new AppError(500, 'Failed to delete faculty'));
     }
 }

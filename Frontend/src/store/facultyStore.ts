@@ -48,6 +48,22 @@ const useFacultyStore = create((set) => ({
       set({ isLoading: false });
     }
   },
+
+  // Delete a faculty member
+  // Delete a faculty member
+  deleteFaculty: async (facultyId) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.delete(`/faculty/${facultyId}`);
+      set((state) => ({
+        faculty: state.faculty.filter((faculty) => faculty.faculty_id !== facultyId),
+      }));
+    } catch (error) {
+      set({ error: "Failed to delete faculty" });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 }));
 
 export default useFacultyStore;

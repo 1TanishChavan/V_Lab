@@ -18,20 +18,17 @@ export async function createFaculty({
     role: string;
 }) {
     try {
-        // Insert into users table
         const newUser = await db.insert(users).values({
             username,
             email,
-            password, // Ideally, hash the password here
+            password,
             role,
         });
 
-        // Fetch the last inserted user_id (this assumes MySQL returns this in a specific way)
-        const insertedUser = await db.select({
-            user_id: users.user_id,
-        })
-        .from(users)
-        .where(eq(users.username, username));
+        const insertedUser = await db
+            .select({ user_id: users.user_id })
+            .from(users)
+            .where(eq(users.username, username));
 
         const userId = insertedUser[0]?.user_id;
 
@@ -39,9 +36,8 @@ export async function createFaculty({
             throw new AppError(500, 'Failed to retrieve new user ID');
         }
 
-        // Insert into faculty table with faculty_id referencing the user_id
         await db.insert(faculty).values({
-            faculty_id: userId, // Referencing user_id from users table
+            faculty_id: userId,
             department_id,
         });
 
@@ -112,5 +108,34 @@ export async function getFacultyBatches(facultyId: number) {
     } catch (error) {
         console.error('Error fetching faculty batches:', error);
         throw new AppError(500, `Failed to fetch faculty batches: ${error.message}`);
+    }
+}
+
+// Delete a faculty and corresponding user
+export async function deleteFaculty(facultyId: number) {
+    try {
+        // First, retrieve the faculty record to get the faculty_id, which is also the user_id
+        const facultyRecord = await db
+            .select({
+                user_id: faculty.faculty_id,  // user_id in `users` table is faculty_id in `faculty`
+            })
+            .from(faculty)
+            .where(eq(faculty.faculty_id, facultyId));
+
+        const userId = facultyRecord[0]?.user_id;
+
+        if (!userId) {
+            throw new AppError(404, 'Faculty not found');
+        }
+
+        // Delete the faculty record
+        await db.delete(faculty).where(eq(faculty.faculty_id, facultyId));
+
+        // Delete the user record from `users` table
+        await db.delete(users).where(eq(users.user_id, userId));
+
+    } catch (error) {
+        console.error('Error deleting faculty:', error);
+        throw new AppError(500, 'Failed to delete faculty');
     }
 }
