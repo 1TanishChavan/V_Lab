@@ -7,6 +7,7 @@ import { AppError } from 'utils/errors';
 import logger from '../utils/logger';
 
 export async function registerUser(userData: any) {
+    userData.role ="Student";
     logger.info('Attempting to register new user', { email: userData.email, role: userData.role });
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);

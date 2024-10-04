@@ -22,7 +22,7 @@ const Navbar: React.FC = () => {
                 >
                   Courses
                 </Link>
-                {(user?.role === 'Admin' || user?.role === 'HOD') && (  // Check if user is admin
+                {user?.role != 'Student' && (  // Check if user is admin
                   <Link
                     to="/students"
                     className="text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium"
@@ -38,20 +38,20 @@ const Navbar: React.FC = () => {
                     Faculty
                   </Link>
                 )}
+                {user?.role != 'Student' && ( // Check if user is admin
+                  <Link
+                  to="/division"
+                  className="text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium"
+                  >
+                    Division
+                  </Link>
+                )}
                 {user?.role === 'Admin' && (  // Check if user is admin
                   <Link
                     to="/departments"
                     className="text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium"
                   >
                     Department
-                  </Link>
-                )}
-                {(user?.role === 'Admin' || user?.role === 'HOD') && (  // Check if user is admin
-                  <Link
-                    to="/division"
-                    className="text-gray-900 dark:text-white inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium"
-                  >
-                    Division
                   </Link>
                 )}
               </div>
