@@ -1,0 +1,59 @@
+Date,Attendance,Mode,Time,Team Member,Task,Related File
+2024-08-26,P,ONLINE,5hr 30min,Omkar Lomte,Implement user authentication,backend/controllers/authController.ts
+2024-08-26,P,ONLINE,5hr 40min,Tanish Chavan,Create login and registration UI,frontend/pages/AuthTabs.tsx
+2024-08-26,P,OFFLINE,6hr 00min,Chintamani Joshi,Set up backend server,backend/app.ts
+2024-08-27,P,ONLINE,5hr 45min,Tanish Chavan,Implement login and registration logic,frontend/store/authStore.ts
+2024-08-27,P,OFFLINE,7hr 7min,Chintamani Joshi,Design database schema for users and roles,backend/models/schema.ts
+2024-08-27,P,ONLINE,5hr 30min,Omkar Lomte,Set up authentication middleware,backend/middlewares/authMiddleware.ts
+2024-08-28,P,OFFLINE,4hr 11min,Omkar Lomte,Develop course creation API for HOD,backend/controllers/courseController.ts
+2024-08-28,P,OFFLINE,5hr 27min,Tanish Chavan,Create course creation UI for HOD,frontend/pages/Courses.tsx
+2024-08-28,P,OFFLINE,6hr 15min,Chintamani Joshi,Create models for course and faculty,backend/models/schema.ts
+2024-08-29,P,OFFLINE,5hr 30min,Omkar Lomte,Implement course update functionality,backend/controllers/courseController.ts
+2024-08-29,P,OFFLINE,5hr 35min,Tanish Chavan,Develop course update UI,frontend/pages/Courses.tsx
+2024-08-29,P,OFFLINE,6hr 00min,Chintamani Joshi,Design APIs for course assignment,backend/controllers/courseFacultyController.ts
+2024-08-30,P,ONLINE,5hr 20min,Omkar Lomte,Create API for assigning courses to faculty,backend/controllers/courseFacultyController.ts
+2024-08-30,P,ONLINE,5hr 15min,Tanish Chavan,Implement UI for course assignment,frontend/pages/CourseAssign.tsx
+2024-08-30,P,ONLINE,6hr 00min,Chintamani Joshi,Develop API for course deletion,backend/controllers/courseController.ts
+2024-08-31,P,ONLINE,5hr 30min,Omkar Lomte,Develop practical creation API,backend/controllers/practicalController.ts
+2024-08-31,P,ONLINE,5hr 35min,Tanish Chavan,Create practical creation UI,frontend/pages/PracticalCreation.tsx
+2024-08-31,P,ONLINE,6hr 00min,Chintamani Joshi,Set up API routes for practical creation,backend/routes/practicalRoutes.ts
+2024-09-02,P,ONLINE,5hr 30min,Omkar Lomte,Implement practical update and delete API,backend/controllers/practicalController.ts
+2024-09-02,P,ONLINE,5hr 1min,Tanish Chavan,Develop UI for updating and deleting practicals,frontend/pages/UpdatePractical.tsx
+2024-09-02,P,ONLINE,6hr 00min,Chintamani Joshi,Optimize practical API logic,backend/services/practicalService.ts
+2024-09-03,P,ONLINE,5hr 30min,Omkar Lomte,Create API for viewing practical submissions,backend/controllers/submissionController.ts
+2024-09-03,P,ONLINE,5hr 15min,Tanish Chavan,Implement practical submission view for faculty,frontend/pages/PracticalSubmission.tsx
+2024-09-03,P,ONLINE,6hr 00min,Chintamani Joshi,Handle practical submission validation,backend/middlewares/validationMiddleware.ts
+2024-09-04,P,ONLINE,5hr 30min,Omkar Lomte,Develop API for student practical view,backend/controllers/practicalController.ts
+2024-09-04,P,ONLINE,5hr 30min,Tanish Chavan,Create student practical view UI,frontend/pages/PracticalList.tsx
+2024-09-04,P,ONLINE,6hr 00min,Chintamani Joshi,Improve performance of practical listing queries,backend/services/practicalService.ts
+2024-09-05,P,OFFLINE,5hr 20min,Omkar Lomte,Implement practical submission API,backend/controllers/submissionController.ts
+2024-09-05,P,OFFLINE,5hr 42min,Tanish Chavan,Develop practical submission UI for students,frontend/pages/PracticalSubmission.tsx
+2024-09-05,P,OFFLINE,6hr 10min,Chintamani Joshi,Refactor submission handling logic,backend/services/submissionService.ts
+2024-09-06,P,ONLINE,5hr 30min,Omkar Lomte,Create API for managing students and faculty,backend/controllers/studentController.ts
+2024-09-06,P,ONLINE,5hr 23min,Tanish Chavan,Implement UI for student and faculty management,frontend/pages/Students.tsx
+2024-09-06,P,ONLINE,6hr 00min,Chintamani Joshi,Optimize student and faculty API,backend/services/studentService.ts
+2024-09-09,P,ONLINE,5hr 58min,Omkar Lomte,Develop API for student and faculty details,backend/controllers/facultyController.ts
+2024-09-09,P,ONLINE,5hr 18min,Tanish Chavan,Create UI for student and faculty details,frontend/pages/Faculty.tsx
+2024-09-09,P,ONLINE,6hr 15min,Chintamani Joshi,Handle errors in student and faculty APIs,backend/middlewares/errorMiddleware.ts
+2024-09-10,P,ONLINE,5hr 36min,Omkar Lomte,Implement API for viewing all submissions,backend/controllers/submissionController.ts
+2024-09-10,P,ONLINE,5hr 30min,Tanish Chavan,Develop UI for viewing all submissions,frontend/pages/StudentSubmissions.tsx
+2024-09-10,P,ONLINE,6hr 00min,Chintamani Joshi,Enhance submission tracking logic,backend/services/submissionService.ts
+2024-09-11,P,ONLINE,5hr 2min,Omkar Lomte,Create API for managing departments,backend/controllers/departmentController.ts
+2024-09-11,P,OFFLINE,6hr 28min,Tanish Chavan,Implement UI for department management,frontend/components/DepartmentManagement.tsx
+2024-09-11,P,ONLINE,6hr 00min,Chintamani Joshi,Refactor department handling logic,backend/services/departmentService.ts
+2024-09-12,P,ONLINE,5hr 2min,Omkar Lomte,Develop API for managing batches,backend/controllers/batchController.ts
+2024-09-12,P,ONLINE,5hr 36min,Tanish Chavan,Create UI for batch management,frontend/components/BatchManagement.tsx
+2024-09-12,P,ONLINE,6hr 00min,Chintamani Joshi,Optimize batch management APIs,backend/services/batchService.ts
+2024-09-13,P,ONLINE,5hr 8min,Omkar Lomte,Implement search functionality in backend,backend/services/studentService.ts
+2024-09-13,P,ONLINE,5hr 13min,Tanish Chavan,Develop search UI for students and submissions,frontend/components/SearchComponent.tsx
+2024-09-13,P,ONLINE,6hr 00min,Chintamani Joshi,Enhance search performance for student data,backend/services/studentService.ts
+2024-09-14,P,ONLINE,5hr 59min,Omkar Lomte,Create API for generating submitted/not submitted lists,backend/services/submissionService.ts
+2024-09-14,P,ONLINE,5hr 40min,Tanish Chavan,Implement UI for submission status lists,frontend/pages/SubmissionDetail.tsx
+2024-09-14,P,ONLINE,6hr 00min,Chintamani Joshi,Improve data aggregation for submission reports,backend/services/submissionService.ts
+2024-09-17,P,OFFLINE,5hr 30min,Chintamani Joshi,Implement JWT for secure authentication,backend/utils/jwtUtils.ts
+2024-09-17,P,OFFLINE,5hr 35min,Tanish Chavan,Integrate JWT in frontend authentication,frontend/store/authStore.ts
+2024-09-17,P,OFFLINE,6hr 00min,Omkar Lomte,Set up token-based authentication middleware,backend/middlewares/authMiddleware.ts
+2024-09-18,P,ONLINE,5hr 20min,Chintamani Joshi,Develop logging system for backend,backend/utils/logger.ts
+2024-09-18,P,ONLINE,5hr 15min,Tanish Chavan,Implement error handling in frontend,frontend/utils/errorHandler.ts
+2024-09-18,P,ONLINE,6hr 00min,Omkar Lomte,Integrate backend logs with external monitoring system,backend/utils/logger.ts
+2024-09-19,P,ONLINE,5hr 30min,Chintamani Joshi

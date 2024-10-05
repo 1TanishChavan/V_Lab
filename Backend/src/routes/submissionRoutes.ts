@@ -7,13 +7,19 @@ import {
     getStudentSubmissions,
     getStudentDetails,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    submitCode, runCode, getRunResult, getSubmissionStatus
 } from '../controllers/submissionController';
 import { authMiddleware, roleMiddleware } from '../middlewares/authMiddleware';
+import { createRateLimiter } from '../middlewares/createRateLimiter';
 
 const router = express.Router();
 
-router.post('/', authMiddleware, createSubmission);
+// router.post('/', authMiddleware, createSubmission);
+router.post('/submit-code', authMiddleware, createRateLimiter({
+    windowMs: 15 * 1000, // 15 seconds
+    max: 1 // 1 request per window
+}), submitCode); // Add this new route
 router.get('/practical/:practicalId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getSubmissionsByPractical);
 router.get('/:submissionId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getSubmissionById);
 router.put('/:submissionId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), updateSubmission);
@@ -21,5 +27,11 @@ router.get('/student/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HO
 router.get('/student-details/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentDetails);
 router.put('/student/:studentId', authMiddleware, roleMiddleware(['HOD']), updateStudent);
 router.delete('/student/:studentId', authMiddleware, roleMiddleware(['HOD']), deleteStudent);
+router.post('/run', authMiddleware, createRateLimiter({
+    windowMs: 15 * 1000, // 15 seconds
+    max: 1 // 1 request per window
+}), runCode);
+router.get('/run/:token', authMiddleware, getRunResult);
+router.get('/:submissionId/status', authMiddleware, getSubmissionStatus);
 
 export default router;

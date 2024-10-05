@@ -5,6 +5,15 @@ import { useAuthStore } from "../store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Slash } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
 import {
   Drawer,
   DrawerClose,
@@ -23,11 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-} from "@/components/ui/breadcrumb";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -233,12 +237,26 @@ const PracticalList = () => {
 
   const renderStudentCard = (practical) => {
     const isLocked = practical.lock;
+    const hasPassedDeadline = new Date(practical.deadline) < new Date();
+    const isPastDeadlineUnsuccessful =
+      hasPassedDeadline && practical.status !== "Accepted";
+    if (isLocked) {
+      return null; // Don't render locked practicals for students
+    }
     return (
       <Card
         key={practical.practical_id}
-        className={`mb-4 w-full ${isLocked ? "opacity-30" : ""}`}
+        className={`mb-4 w-full ${
+          isPastDeadlineUnsuccessful ? "border-red-500" : ""
+        }`}
       >
-        <CardContent className="p-4">
+        <CardContent
+          className="p-4"
+          onClick={() =>
+            (!hasPassedDeadline || practical.status !== "Accepted") &&
+            handlePracticalClick(practical)
+          }
+        >
           <div className="flex justify-between items-center">
             <h3
               className="text-lg font-semibold truncate"
@@ -247,7 +265,15 @@ const PracticalList = () => {
               {practical.sr_no}. {practical.practical_name}
             </h3>
             <div>
-              <span className="mr-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+              <span
+                className={`mr-2 px-2 py-1 rounded-full text-xs ${
+                  isPastDeadlineUnsuccessful
+                    ? "bg-red-100 text-red-800"
+                    : practical.status === "Accepted"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
                 Status: {practical.status || "Not Submitted"}
               </span>
               {practical.status === "Accepted" && (
@@ -288,19 +314,29 @@ const PracticalList = () => {
   return (
     <div className="container mx-auto mt-4 p-4">
       <Breadcrumb className="mb-4">
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/">
-            Home
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/courses">
-            Courses
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink>{course?.course_name}</BreadcrumbLink>
-        </BreadcrumbItem>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbLink>{course?.department_name}</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbLink>Semester {course?.semester}</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbPage>{course?.course_name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
       </Breadcrumb>
 
       <h1 className="text-3xl font-bold mb-6">

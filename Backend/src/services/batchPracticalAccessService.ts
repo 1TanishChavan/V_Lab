@@ -27,29 +27,29 @@ import { eq, and } from 'drizzle-orm';
 //     return await getBatchPracticalAccess(accessId);
 // }
 
-export async function getBatchPracticalAccess(practicalId: number, facultyId: number) {
-    const result = await db
-        .select({
-            batch_practical_access_id: batch_practical_access.batch_practical_access_id,
-            batch_id: batch.batch_id,
-            division: batch.division,
-            batch_name: batch.batch,
-            lock: batch_practical_access.lock,
-            deadline: batch_practical_access.deadline,
-        })
-        .from(courses_faculty)
-        .leftJoin(batch, eq(courses_faculty.batch_id, batch.batch_id))
-        .leftJoin(
-            batch_practical_access,
-            and(
-                eq(batch_practical_access.batch_id, batch.batch_id),
-                eq(batch_practical_access.practical_id, practicalId)
-            )
-        )
-        .where(eq(courses_faculty.faculty_id, facultyId));
+// export async function getBatchPracticalAccess(practicalId: number, facultyId: number) {
+//     const result = await db
+//         .select({
+//             batch_practical_access_id: batch_practical_access.batch_practical_access_id,
+//             batch_id: batch.batch_id,
+//             division: batch.division,
+//             batch_name: batch.batch,
+//             lock: batch_practical_access.lock,
+//             deadline: batch_practical_access.deadline,
+//         })
+//         .from(courses_faculty)
+//         .leftJoin(batch, eq(courses_faculty.batch_id, batch.batch_id))
+//         .leftJoin(
+//             batch_practical_access,
+//             and(
+//                 eq(batch_practical_access.batch_id, batch.batch_id),
+//                 eq(batch_practical_access.practical_id, practicalId)
+//             )
+//         )
+//         .where(eq(courses_faculty.faculty_id, facultyId));
 
-    return result;
-}
+//     return result;
+// }
 
 export async function createOrUpdateBatchPracticalAccess(data: {
     practical_id: number;
@@ -78,4 +78,32 @@ export async function createOrUpdateBatchPracticalAccess(data: {
         // Create new access
         return await db.insert(batch_practical_access).values(data);
     }
+}
+export async function getBatchPracticalAccess(practicalId: number, facultyId: number) {
+    const result = await db
+        .select({
+            batch_practical_access_id: batch_practical_access.batch_practical_access_id,
+            batch_id: batch.batch_id,
+            division: batch.division,
+            batch_name: batch.batch,
+            lock: batch_practical_access.lock,
+            deadline: batch_practical_access.deadline,
+        })
+        .from(courses_faculty)
+        .innerJoin(batch, eq(courses_faculty.batch_id, batch.batch_id))
+        .leftJoin(
+            batch_practical_access,
+            and(
+                eq(batch_practical_access.batch_id, batch.batch_id),
+                eq(batch_practical_access.practical_id, practicalId)
+            )
+        )
+        .where(
+            and(
+                eq(courses_faculty.faculty_id, facultyId),
+                eq(batch.batch_id, courses_faculty.batch_id)
+            )
+        );
+
+    return result;
 }

@@ -180,16 +180,16 @@ export async function getPracticals() {
 //     }
 // }
 
-export async function getPracticalByCourse(courseId: number) {
-    try {
-        return await db.select()
-            .from(practicals)
-            .where(eq(practicals.course_id, courseId));
-    } catch (error) {
-        console.error('Error in getPracticalByCourse:', error);
-        throw new AppError(500, 'Failed to fetch practicals for the course');
-    }
-}
+// export async function getPracticalByCourse(courseId: number) {
+//     try {
+//         return await db.select()
+//             .from(practicals)
+//             .where(eq(practicals.course_id, courseId));
+//     } catch (error) {
+//         console.error('Error in getPracticalByCourse:', error);
+//         throw new AppError(500, 'Failed to fetch practicals for the course');
+//     }
+// }
 
 export async function updatePractical(practicalId: number, practicalData: any) {
     const { prac_io: pracIoData, prac_language: pracLanguageData, ...practicalInfo } = practicalData;
@@ -256,5 +256,22 @@ export async function getPracticalLanguages(practicalId: number) {
     } catch (error) {
         console.error('Error in getPracticalLanguages:', error);
         throw new AppError(500, 'Failed to fetch practical languages');
+    }
+}
+
+export async function getPracticalByCourse(courseId: number) {
+    try {
+        return await db.select({
+            ...practicals,
+            department_name: departments.name,
+        })
+            .from(practicals)
+            .innerJoin(courses, eq(practicals.course_id, courses.course_id))
+            .innerJoin(departments, eq(courses.department_id, departments.department_id))
+            .where(eq(practicals.course_id, courseId))
+            .orderBy(practicals.sr_no);
+    } catch (error) {
+        console.error('Error in getPracticalByCourse:', error);
+        throw new AppError(500, 'Failed to fetch practicals for the course');
     }
 }
