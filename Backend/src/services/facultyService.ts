@@ -1,40 +1,40 @@
 import { db } from 'config/db';
 import { users, faculty, courses_faculty, batch } from 'models/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { AppError } from '../utils/errors';
 
 // Fetch faculty by department (if departmentId is passed)
-export async function getFacultyByDepartment(departmentId: number) {
-    return await db.select({
-        user_id: faculty.faculty_id,
-        department_id: faculty.department_id,
-        username: users.username,
-        email: users.email
-    }).from(users)
-        .innerJoin(faculty, eq(users.user_id, faculty.faculty_id))
-        .where(eq(faculty.department_id, departmentId));
-}
+// export async function getFacultyByDepartment(departmentId: number) {
+//     return await db.select({
+//         user_id: faculty.faculty_id,
+//         department_id: faculty.department_id,
+//         username: users.username,
+//         email: users.email
+//     }).from(users)
+//         .innerJoin(faculty, eq(users.user_id, faculty.faculty_id))
+//         .where(eq(faculty.department_id, departmentId));
+// }
 
-export async function getAllFaculty() {
-    try {
-        const facultyMembers = await db.select({
-            user_id: faculty.faculty_id,
-            department_id: faculty.department_id,
-            username: users.username,
-            email: users.email,
-        }).from(users)
-            .innerJoin(faculty, eq(users.user_id, faculty.faculty_id));
+// export async function getAllFaculty() {
+//     try {
+//         const facultyMembers = await db.select({
+//             user_id: faculty.faculty_id,
+//             department_id: faculty.department_id,
+//             username: users.username,
+//             email: users.email,
+//         }).from(users)
+//             .innerJoin(faculty, eq(users.user_id, faculty.faculty_id));
 
-        if (!facultyMembers.length) {
-            throw new AppError(404, 'No faculty members found');
-        }
+//         if (!facultyMembers.length) {
+//             throw new AppError(404, 'No faculty members found');
+//         }
 
-        return facultyMembers;
-    } catch (error) {
-        console.error("Error fetching all faculty:", error);
-        throw new AppError(500, 'Failed to fetch faculty');
-    }
-}
+//         return facultyMembers;
+//     } catch (error) {
+//         console.error("Error fetching all faculty:", error);
+//         throw new AppError(500, 'Failed to fetch faculty');
+//     }
+// }
 
 
 
@@ -82,5 +82,57 @@ export async function getFacultyBatches(facultyId: number) {
     } catch (error) {
         console.error('Error in getFacultyBatches:', error);
         throw new AppError(500, `Failed to fetch faculty batches: ${error.message}`);
+    }
+}
+
+export async function getAllFaculty() {
+    try {
+        // Fetch all faculty members
+        const facultyMembers = await db
+            .select({
+                user_id: faculty.faculty_id,
+                department_id: faculty.department_id,
+                username: users.username,
+                email: users.email,
+            })
+            .from(faculty)
+            .innerJoin(users, eq(faculty.faculty_id, users.user_id));
+
+        // Debugging: Log the faculty members
+        console.log("Faculty Members:", facultyMembers);
+
+        // Check if any faculty members were found
+        if (!facultyMembers.length) {
+            throw new AppError(404, 'No faculty members found');
+        }
+
+        return facultyMembers;
+    } catch (error) {
+        console.error("Error in getAllFaculty:", error);
+        throw error;
+    }
+}
+
+export async function getFacultyByDepartment(departmentId: number) {
+    try {
+        const facultyMembers = await db
+            .select({
+                user_id: faculty.faculty_id,
+                department_id: faculty.department_id,
+                username: users.username,
+                email: users.email,
+            })
+            .from(faculty)
+            .innerJoin(users, eq(faculty.faculty_id, users.user_id))
+            .where(eq(faculty.department_id, departmentId));
+
+        if (!facultyMembers.length) {
+            throw new AppError(404, 'No faculty members found in this department');
+        }
+
+        return facultyMembers;
+    } catch (error) {
+        console.error("Error in getFacultyByDepartment:", error);
+        throw error;
     }
 }

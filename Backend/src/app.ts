@@ -17,7 +17,7 @@ import courseFacultyRoutes from './routes/courseFacultyRoutes';
 import { errorHandler } from 'middlewares/errorMiddleware';
 import { loggingMiddleware } from 'middlewares/loggingMiddleware';
 import logger from './utils/logger';
-
+import redisRoutes from './routes/redisRoutes';  // Adjust path as needed
 dotenv.config();
 
 const app = express();
@@ -49,4 +49,5 @@ app.use('/api/submissions', submissionRoutes);
 
 app.use(errorHandler);
 
+app.use('/api/redis', redisRoutes);
 export default app;

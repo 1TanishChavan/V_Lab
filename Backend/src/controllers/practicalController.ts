@@ -4,6 +4,7 @@ import { AppError } from '../utils/errors';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 
 
+
 export async function createPractical(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         console.log(req.body)

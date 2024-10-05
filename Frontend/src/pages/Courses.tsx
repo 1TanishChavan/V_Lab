@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCourseStore, Course } from "../store/courseStore";
 import { useAuthStore } from "../store/authStore";
+import { useDepartmentStore } from "../store/departmentStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,7 +20,6 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
 import {
   AlertDialog,
@@ -46,12 +46,20 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { PlusIcon, Pencil, Trash2 } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { PlusIcon, Pencil, Trash2, ChevronDown, Slash } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Courses: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -60,41 +68,60 @@ const Courses: React.FC = () => {
   const [courseCode, setCourseCode] = useState("");
   const [semester, setSemester] = useState("");
   const [currentSemester, setCurrentSemester] = useState<number | undefined>(1);
+  const [selectedDepartment, setSelectedDepartment] = useState<
+    number | undefined
+  >();
   const [refresh, setRefresh] = useState(false);
   const navigate = useNavigate();
 
-  const courses = useCourseStore((state) => state.courses);
-  const fetchCoursesByDepartment = useCourseStore(
-    (state) => state.fetchCoursesByDepartment
-  );
-  const createCourse = useCourseStore((state) => state.createCourse);
-  const updateCourse = useCourseStore((state) => state.updateCourse);
-  const deleteCourse = useCourseStore((state) => state.deleteCourse);
-
+  const {
+    courses,
+    fetchCoursesByDepartment,
+    createCourse,
+    updateCourse,
+    deleteCourse,
+  } = useCourseStore();
+  const { departments, fetchDepartments } = useDepartmentStore();
   const user = useAuthStore((state) => state.user);
-  const hodDepartmentId = user?.department_id;
+
+  const isAdmin = user?.role === "Admin";
+  const isHOD = user?.role === "HOD";
+  const isFaculty = user?.role === "Faculty";
   const isStudent = user?.role === "Student";
 
+  const canModifyCourses = isAdmin || isHOD;
+  const currentDepartmentId = isAdmin
+    ? selectedDepartment
+    : user?.department_id;
+
   useEffect(() => {
-    if (hodDepartmentId) {
-      fetchCoursesByDepartment(hodDepartmentId);
+    if (isAdmin) {
+      fetchDepartments();
     }
-  }, [fetchCoursesByDepartment, hodDepartmentId, refresh]);
+  }, [isAdmin, fetchDepartments]);
+
+  useEffect(() => {
+    if (currentDepartmentId) {
+      fetchCoursesByDepartment(currentDepartmentId);
+    }
+  }, [fetchCoursesByDepartment, currentDepartmentId, refresh]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentDepartmentId) return;
+
     if (editingId) {
       await updateCourse(editingId, {
         course_name: courseName,
         course_code: courseCode,
-        department_id: hodDepartmentId,
+        department_id: currentDepartmentId,
         semester: parseInt(semester),
       });
     } else {
       await createCourse({
         course_name: courseName,
         course_code: courseCode,
-        department_id: hodDepartmentId,
+        department_id: currentDepartmentId,
         semester: currentSemester,
       });
     }
@@ -133,26 +160,72 @@ const Courses: React.FC = () => {
     setIsDrawerOpen(true);
   };
 
+  const handleDepartmentChange = (departmentId: string) => {
+    setSelectedDepartment(parseInt(departmentId));
+  };
+
+  const filteredCourses = isStudent
+    ? courses.filter((course) => course.semester === user?.semester)
+    : courses;
+
+  const visibleSemesters = isStudent
+    ? [user?.semester]
+    : Array.from({ length: 8 }, (_, i) => i + 1);
+
   return (
     <div className="container mx-auto mt-4">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/">
-            Home
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem isCurrentPage>
-          <BreadcrumbLink>Courses</BreadcrumbLink>
-        </BreadcrumbItem>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink as={Link} to="/">
+              Home
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            {isAdmin ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1">
+                  {departments.find(
+                    (d) => d.department_id === selectedDepartment
+                  )?.name || "Select Department"}
+                  <ChevronDown className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {departments.map((dept) => (
+                    <DropdownMenuItem
+                      key={dept.department_id}
+                      onClick={() =>
+                        handleDepartmentChange(dept.department_id.toString())
+                      }
+                    >
+                      {dept.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <span>
+                {
+                  departments.find(
+                    (d) => d.department_id === currentDepartmentId
+                  )?.name
+                }
+              </span>
+            )}
+          </BreadcrumbItem>
+        </BreadcrumbList>
       </Breadcrumb>
 
-      {Array.from({ length: 8 }, (_, i) => (
-        <div key={i} className="mb-8">
+      {visibleSemesters.map((semNum) => (
+        <div key={semNum} className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xl font-semibold">Semester {i + 1}</h3>
-            {!isStudent && (
+            <h3 className="text-xl font-semibold">Semester {semNum}</h3>
+            {canModifyCourses && (
               <Button
-                onClick={() => openAddDrawer(i + 1)}
+                onClick={() => openAddDrawer(semNum)}
                 variant="outline"
                 size="sm"
               >
@@ -162,8 +235,8 @@ const Courses: React.FC = () => {
           </div>
           <Carousel className="w-full">
             <CarouselContent>
-              {courses
-                .filter((course) => course.semester === i + 1)
+              {filteredCourses
+                .filter((course) => course.semester === semNum)
                 .map((course) => (
                   <CarouselItem
                     key={course.course_id}
@@ -183,7 +256,7 @@ const Courses: React.FC = () => {
                           Code: {course.course_code}
                         </p>
                       </CardContent>
-                      {!isStudent && (
+                      {canModifyCourses && (
                         <CardFooter className="flex justify-between">
                           <Button
                             variant="outline"
@@ -235,7 +308,7 @@ const Courses: React.FC = () => {
         </div>
       ))}
 
-      {!isStudent && (
+      {canModifyCourses && (
         <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerContent>
             <DrawerHeader>
