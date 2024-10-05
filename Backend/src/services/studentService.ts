@@ -45,6 +45,7 @@ export async function getStudentsWithDepartment() {
         .where(eq(users.role, 'Student'));
 }
 
+
 export async function getStudentsWithFilters(filters: {
     department?: string;
     semester?: string;
@@ -68,18 +69,10 @@ export async function getStudentsWithFilters(filters: {
             .innerJoin(batch, eq(students.batch_id, batch.batch_id))
             .innerJoin(departments, eq(batch.department_id, departments.department_id));
 
-        if (filters.department) {
-            query = query.where(eq(departments.name, filters.department));
-        }
-        if (filters.semester) {
-            query = query.where(eq(batch.semester, parseInt(filters.semester)));
-        }
-        if (filters.division) {
-            query = query.where(eq(batch.division, filters.division));
-        }
-        if (filters.batch) {
-            query = query.where(eq(batch.batch, filters.batch));
-        }
+        if (filters.department) query = query.where(eq(departments.name, filters.department));
+        if (filters.semester) query = query.where(eq(batch.semester, parseInt(filters.semester)));
+        if (filters.division) query = query.where(eq(batch.division, filters.division));
+        if (filters.batch) query = query.where(eq(batch.batch, filters.batch));
 
         return await query;
     } catch (error) {

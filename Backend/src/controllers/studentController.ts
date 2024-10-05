@@ -2,6 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import * as studentService from 'services/studentService';
 import { AppError } from '../../src/utils/errors';
 
+export async function getStudentsByDepartment(req: Request, res: Response, next: NextFunction) {
+    try {
+        const departmentId = req.params.department;
+        const students = await studentService.getStudentsByDepartment(departmentId);  // Assuming this exists in services
+        res.json(students);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function getStudentsByBatch(req: Request, res: Response, next: NextFunction) {
     try {
         const students = await studentService.getStudentsByBatch(parseInt(req.params.batchId));
@@ -60,11 +70,7 @@ export async function getStudentsWithFilters(req: Request, res: Response, next: 
         });
         res.json(students);
     } catch (error) {
-        if (error instanceof AppError) {
-            res.status(error.statusCode).json({ error: error.message });
-        } else {
-            next(error);
-        }
+        next(error instanceof AppError ? res.status(error.statusCode).json({ error: error.message }) : next(error));
     }
 }
 
