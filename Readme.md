@@ -1,6 +1,10 @@
+# Judge0 setup:
+docker-compose up -d db redis redis2
+wait for sometime to setup
+docker-compose up -d
+
 # Project Set up
 
-npm i
 
 # set up database
 
@@ -13,8 +17,3 @@ npm i
 DROP DATABASE v_lab_seed;
 CREATE DATABASE v_lab_seed;
 
-
-Steps :
-1. We have to register faculty and HOD mannually by adding details into the 'users' table and 'faculty' table.
-2. Add departments mannual into the 'department' table.
-3. Add batches 
