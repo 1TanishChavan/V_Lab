@@ -1,7 +1,7 @@
 # Judge0 setup:
-docker-compose up -d db redis redis2
-wait for sometime to setup
-docker-compose up -d
+- docker-compose up -d db redis redis2
+- wait for sometime to setup
+- docker-compose up -d
 
 # Project Set up
 
