@@ -62,6 +62,8 @@ const PracticalList = () => {
     fetchCourse();
   }, [courseId]);
 
+  useEffect(() => {}, [course]);
+
   const handlePracticalClick = (practical) => {
     // if (isStudent) {
     navigate(`/coding/${courseId}/${practical.practical_id}`);
@@ -74,12 +76,12 @@ const PracticalList = () => {
     try {
       let response;
       if (isStudent) {
-        // response = await api.get(`/practicals/course/${courseId}`);
         response = await api.get(`/practicals/${courseId}/student-view`);
       } else {
         response = await api.get(`/practicals/course/${courseId}`);
       }
-      setPracticals(response.data);
+      const sortedPracticals = response.data.sort((a, b) => a.sr_no - b.sr_no);
+      setPracticals(sortedPracticals);
     } catch (error) {
       console.error("Error fetching practicals:", error);
     }
@@ -88,16 +90,24 @@ const PracticalList = () => {
   const fetchCourse = async () => {
     try {
       const response = await api.get(`/courses/${courseId}`);
-      setCourse(response.data);
+      setCourse(response.data[0]);
     } catch (error) {
       console.error("Error fetching course:", error);
     }
   };
 
+  // Update the fetchBatchAccess function to include courseId
   const fetchBatchAccess = async (practicalId) => {
     try {
-      const response = await api.get(`/batch-practical-access/${practicalId}`);
-      setBatchAccess(response.data);
+      const response = await api.get(
+        `/batch-practical-access/${practicalId}/${courseId}/${user.user_id}`
+      );
+      const batchesWithDefaults = response.data.map((batch) => ({
+        ...batch,
+        lock: batch.lock === null ? true : batch.lock,
+        deadline: batch.deadline || new Date().toISOString().slice(0, 16),
+      }));
+      setBatchAccess(batchesWithDefaults);
     } catch (error) {
       console.error("Error fetching batch access:", error);
     }
@@ -108,16 +118,30 @@ const PracticalList = () => {
       const accessData = batchAccess.find(
         (access) => access.batch_id === batchId
       );
+
+      if (!accessData) {
+        console.error("No access data found for this batch");
+        return;
+      }
       if (accessData.lock == null) {
         accessData.lock = false;
       }
+      // await api.post("/batch-practical-access", {
+      //   practical_id: selectedPracticalId,
+      //   batch_id: batchId,
+      //   lock: accessData.lock,
+      //   deadline: accessData.deadline,
+      // });
+
       await api.post("/batch-practical-access", {
         practical_id: selectedPracticalId,
         batch_id: batchId,
         lock: accessData.lock,
-        deadline: accessData.deadline,
+        deadline:
+          accessData.deadline === "Not set" ? null : accessData.deadline,
       });
-      fetchBatchAccess(selectedPracticalId);
+
+      await fetchBatchAccess(selectedPracticalId);
     } catch (error) {
       console.error("Error updating batch access:", error);
     }
@@ -166,11 +190,14 @@ const PracticalList = () => {
   };
 
   const renderFacultyCard = (practical) => (
-    <Card key={practical.practical_id} className="mb-4 w-full">
+    <Card
+      key={practical.practical_id}
+      className="mb-4 w-full transform hover:scale-105 transition-transform duration-200"
+    >
       <CardContent className="p-4">
         <div className="flex justify-between items-center">
           <h3
-            className="text-lg font-semibold truncate"
+            className="text-lg font-semibold truncate cursor-pointer hover:text-blue-600"
             onClick={() => handlePracticalClick(practical)}
           >
             {practical.sr_no}. {practical.practical_name}
@@ -246,20 +273,20 @@ const PracticalList = () => {
     return (
       <Card
         key={practical.practical_id}
-        className={`mb-4 w-full ${
+        className={`mb-4 w-full transform hover:scale-105 transition-transform duration-200 ${
           isPastDeadlineUnsuccessful ? "border-red-500" : ""
         }`}
       >
         <CardContent
           className="p-4"
-          onClick={() =>
-            (!hasPassedDeadline || practical.status !== "Accepted") &&
-            handlePracticalClick(practical)
-          }
+          // onClick={() =>
+          //   (!hasPassedDeadline || practical.status !== "Accepted") &&
+          //   handlePracticalClick(practical)
+          // }
         >
           <div className="flex justify-between items-center">
             <h3
-              className="text-lg font-semibold truncate"
+              className="text-lg font-semibold truncate cursor-pointer hover:text-blue-600"
               onClick={() => handlePracticalClick(practical)}
             >
               {practical.sr_no}. {practical.practical_name}
@@ -322,13 +349,19 @@ const PracticalList = () => {
             <Slash />
           </BreadcrumbSeparator>
           <BreadcrumbItem>
-            <BreadcrumbLink>{course?.department_name}</BreadcrumbLink>
+            <BreadcrumbLink href={`/departments/${course?.department_id}`}>
+              {course?.department_name}
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator>
             <Slash />
           </BreadcrumbSeparator>
           <BreadcrumbItem>
-            <BreadcrumbLink>Semester {course?.semester}</BreadcrumbLink>
+            <BreadcrumbLink
+              href={`/departments/${course?.department_id}/semester/${course?.semester}`}
+            >
+              Semester {course?.semester}
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator>
             <Slash />
@@ -355,7 +388,7 @@ const PracticalList = () => {
         </div>
       )}
 
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      {/* <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Batch Practical Access</DrawerTitle>
@@ -422,6 +455,94 @@ const PracticalList = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline">Close</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer> */}
+
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Batch Practical Access</DrawerTitle>
+            <DrawerDescription>
+              Manage access for different batches
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4">
+            <div className="max-h-[60vh] overflow-y-auto">
+              {batchAccess.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Division</TableHead>
+                      <TableHead>Batch</TableHead>
+                      <TableHead>Lock</TableHead>
+                      <TableHead>Deadline</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {batchAccess.map((access) => (
+                      <TableRow key={access.batch_id}>
+                        <TableCell>{access.division}</TableCell>
+                        <TableCell>{access.batch_name}</TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={access.lock}
+                            onCheckedChange={(checked) => {
+                              setBatchAccess(
+                                batchAccess.map((a) =>
+                                  a.batch_id === access.batch_id
+                                    ? { ...a, lock: checked }
+                                    : a
+                                )
+                              );
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="datetime-local"
+                            placeholder="Deadline stored in ISO format"
+                            value={
+                              access.deadline !== "Not set"
+                                ? new Date(access.deadline)
+                                    .toISOString()
+                                    .slice(0, 19)
+                                : "00-00-0000T00:00"
+                            }
+                            onChange={(e) => {
+                              setBatchAccess(
+                                batchAccess.map((a) =>
+                                  a.batch_id === access.batch_id
+                                    ? { ...a, deadline: e.target.value }
+                                    : a
+                                )
+                              );
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            onClick={() => handleAccessSubmit(access.batch_id)}
+                          >
+                            Submit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-4">
+                  No batches assigned for this course
+                </div>
+              )}
             </div>
           </div>
           <DrawerFooter>

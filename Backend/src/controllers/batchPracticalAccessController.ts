@@ -59,16 +59,39 @@ import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 //     }
 // }
 
-export async function getBatchPracticalAccess(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+// export async function getBatchPracticalAccess(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+//     try {
+//         const { practicalId } = req.params;
+//         const { facultyId } = req.params;
+//         const batchAccess = await batchPracticalAccessService.getBatchPracticalAccess(parseInt(practicalId), parseInt(facultyId));
+//         res.json(batchAccess);
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+export const getBatchPracticalAccess = async (req: Request, res: Response) => {
     try {
-        const { practicalId } = req.params;
-        const facultyId = req.user!.user_id;
-        const batchAccess = await batchPracticalAccessService.getBatchPracticalAccess(parseInt(practicalId), facultyId);
+        const practicalId = parseInt(req.params.practicalId);
+        const courseId = parseInt(req.params.courseId);
+        const facultyId = parseInt(req.params.facultyId);
+
+        if (isNaN(practicalId) || isNaN(courseId) || isNaN(facultyId)) {
+            return res.status(400).json({ message: 'Invalid parameters' });
+        }
+
+        const batchAccess = await batchPracticalAccessService.getBatchPracticalAccess(
+            practicalId,
+            courseId,
+            facultyId
+        );
+
         res.json(batchAccess);
     } catch (error) {
-        next(error);
+        console.error('Error in getBatchPracticalAccess:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-}
+};
 
 export async function createOrUpdateBatchPracticalAccess(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {

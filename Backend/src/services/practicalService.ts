@@ -1,5 +1,5 @@
 import { db } from '../config/db';
-import { practicals, prac_io, prac_language, programming_language } from '../models/schema';
+import { practicals, prac_io, prac_language, programming_language, courses, departments, } from '../models/schema';
 import { eq, and } from 'drizzle-orm';
 import { AppError } from '../utils/errors';
 

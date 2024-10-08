@@ -3,7 +3,7 @@ import * as submissionService from '../services/submissionService';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 import { AppError } from '../../src/utils/errors';
 import { practicals, prac_io, prac_language, programming_language, batch_practical_access, submissions } from '../models/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or, isNull, isNotNull } from 'drizzle-orm';
 import { db } from '../config/db';
 
 export async function runCode(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -163,14 +163,20 @@ export async function getSubmissionStatus(req: AuthenticatedRequest, res: Respon
 }
 
 
+// Backend service for student practical view
 export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest, res: Response) {
     const courseId = parseInt(req.params.courseId);
     const studentId = req.user!.user_id;
 
     try {
-        const practical = await db
+        const result = await db
             .select({
-                ...practicals,
+                practical_id: practicals.practical_id,
+                sr_no: practicals.sr_no,
+                practical_name: practicals.practical_name,
+                course_id: practicals.course_id,
+                description: practicals.description,
+                pdf_url: practicals.pdf_url,
                 status: submissions.status,
                 marks: submissions.marks,
                 deadline: batch_practical_access.deadline,
@@ -192,10 +198,26 @@ export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest
                 )
             )
             .where(eq(practicals.course_id, courseId))
+            .having(
+                or(
+                    // Include practicals where:
+                    // 1. No batch access record exists (lock is null)
+                    // isNull(batch_practical_access.lock),
+                    // 2. Batch access exists and practical is not locked
+                    eq(batch_practical_access.lock, false),
+                    // 3. Student has already made a submission (regardless of lock status)
+                    eq(submissions.status, "Accepted"),
+                    // isNotNull(submissions.status)
+                )
+            )
             .orderBy(practicals.sr_no);
 
-        res.json(practical);
+        res.json(result);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch practicals' });
+        console.error('Error in getPracticalWithSubmissionStatus:', error);
+        res.status(500).json({
+            error: 'Failed to fetch practicals',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 }

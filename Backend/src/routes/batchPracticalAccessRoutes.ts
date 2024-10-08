@@ -11,8 +11,9 @@ const router = express.Router();
 // router.delete('/:id', authMiddleware, roleMiddleware(['Faculty', 'HOD']), deleteBatchPracticalAccess);
 // router.put('/:id', authMiddleware, roleMiddleware(['Faculty', 'HOD']), validateRequestBody(updateBatchPracticalAccessSchema), updateBatchPracticalAccess);
 // router.get('/:id', authMiddleware, getBatchPracticalAccess);
-
+router.get('/:practicalId/:courseId/:facultyId', getBatchPracticalAccess);
 router.get('/:practicalId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getBatchPracticalAccess);
+router.get('/:practicalId/:facultyId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getBatchPracticalAccess);
 router.post('/', authMiddleware, roleMiddleware(['Faculty', 'HOD']), createOrUpdateBatchPracticalAccess);
 
 export default router;

@@ -1,5 +1,5 @@
 import { db } from '../config/db';
-import { courses } from '../models/schema';
+import { courses, departments } from '../models/schema';
 import { eq, and } from 'drizzle-orm';
 import { AppError } from '../utils/errors';
 
@@ -67,8 +67,20 @@ export async function getCoursesByDepartment(departmentId: number) {
 }
 
 export async function getCoursesById(courseId: number) {
-    return await db.select()
+    return await db
+        .select({
+            course_id: courses.course_id,
+            course_name: courses.course_name,
+            course_code: courses.course_code,
+            semester: courses.semester,
+            department_id: courses.department_id,
+            department_name: departments.name, // Include department name
+        })
         .from(courses)
+        .innerJoin(
+            departments,
+            eq(courses.department_id, departments.department_id)
+        )
         .where(
             eq(courses.course_id, courseId)
         )

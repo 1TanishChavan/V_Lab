@@ -79,7 +79,7 @@ export async function createOrUpdateBatchPracticalAccess(data: {
         return await db.insert(batch_practical_access).values(data);
     }
 }
-export async function getBatchPracticalAccess(practicalId: number, facultyId: number) {
+export async function getBatchPracticalAccess(practicalId: number, courseId: number, facultyId: number) {
     const result = await db
         .select({
             batch_practical_access_id: batch_practical_access.batch_practical_access_id,
@@ -101,9 +101,11 @@ export async function getBatchPracticalAccess(practicalId: number, facultyId: nu
         .where(
             and(
                 eq(courses_faculty.faculty_id, facultyId),
+                eq(courses_faculty.course_id, courseId),
                 eq(batch.batch_id, courses_faculty.batch_id)
             )
-        );
+        )
+        .orderBy(batch.division, batch.batch);
 
     return result;
 }
