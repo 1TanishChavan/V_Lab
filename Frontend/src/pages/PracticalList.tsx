@@ -275,7 +275,7 @@ const PracticalList = () => {
         key={practical.practical_id}
         className={`mb-4 w-full transform hover:scale-105 transition-transform duration-200 ${
           isPastDeadlineUnsuccessful ? "border-red-500" : ""
-        }`}
+        }${practical.status === "Accepted" ? "border-green-500" : ""}`}
       >
         <CardContent
           className="p-4"

@@ -7,7 +7,7 @@ import {
     getStudentSubmissions,
     getStudentDetails,
     updateStudent,
-    deleteStudent,
+    deleteStudent, getPreviousSubmission,
     submitCode, runCode, getRunResult, getSubmissionStatus
 } from '../controllers/submissionController';
 import { authMiddleware, roleMiddleware } from '../middlewares/authMiddleware';
@@ -17,9 +17,10 @@ const router = express.Router();
 
 // router.post('/', authMiddleware, createSubmission);
 router.post('/submit-code', authMiddleware, createRateLimiter({
-    windowMs: 15 * 1000, // 15 seconds
-    max: 1 // 1 request per window
-}), submitCode); // Add this new route
+    windowMs: 3 * 1000, // 30 seconds
+    max: 1,
+    keyPrefix: 'submit'
+}), submitCode);
 router.get('/practical/:practicalId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getSubmissionsByPractical);
 router.get('/:submissionId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getSubmissionById);
 router.put('/:submissionId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), updateSubmission);
@@ -33,5 +34,7 @@ router.post('/run', authMiddleware, createRateLimiter({
 }), runCode);
 router.get('/run/:token', authMiddleware, getRunResult);
 router.get('/:submissionId/status', authMiddleware, getSubmissionStatus);
+
+router.get('/previous/:practicalId', authMiddleware, getPreviousSubmission);
 
 export default router;

@@ -1,5 +1,5 @@
 import { db } from '../config/db';
-import { practicals, prac_io, prac_language, programming_language, courses, departments, } from '../models/schema';
+import { practicals, prac_io, prac_language, programming_language, courses, departments, courses } from '../models/schema';
 import { eq, and } from 'drizzle-orm';
 import { AppError } from '../utils/errors';
 
@@ -228,9 +228,12 @@ export async function updatePractical(practicalId: number, practicalData: any) {
 }
 
 export async function getPracticalById(practicalId: number) {
-    const practical = await db.select()
+    const practical = await db.select({
+        ...practicals, course_name: courses.course_name, semester: courses.semester,
+    })
         .from(practicals)
         .where(eq(practicals.practical_id, practicalId))
+        .innerJoin(courses, eq(courses.course_id, practicals.course_id))
         .limit(1);
 
     if (!practical[0]) {

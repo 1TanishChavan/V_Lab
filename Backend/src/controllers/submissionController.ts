@@ -14,25 +14,7 @@ export async function runCode(req: AuthenticatedRequest, res: Response, next: Ne
         next(error);
     }
 }
-// export async function createSubmission(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-//     try {
-//         const submission = await submissionService.createSubmission(req.body);
-//         res.status(201).json(submission);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
 
-// export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-//     try {
-//         const { courseId } = req.params;
-//         const studentId = req.user!.user_id;
-//         const practicals = await submissionService.getPracticalWithSubmissionStatus(parseInt(courseId), studentId);
-//         res.json(practicals);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
 
 export async function getSubmissionsByPractical(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
@@ -108,27 +90,144 @@ export async function deleteStudent(req: AuthenticatedRequest, res: Response, ne
     }
 }
 
+// export async function submitCode(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+//     try {
+//         const { practicalId, code, language } = req.body;
+//         const studentId = req.user!.user_id;
+
+//         if (!practicalId || !code || !language) {
+//             throw new AppError(400, 'Missing required fields');
+//         }
+
+//         const result = await submissionService.submitCode({
+//             practicalId,
+//             studentId,
+//             code,
+//             language
+//         });
+
+//         // res.status(201).json({
+//         //     success: true,
+//         //     message: 'Code submitted successfully',
+//         //     data: result
+//         // });
+//         res.status(201).json(result);
+//     } catch (error) {
+//         if (error instanceof AppError) {
+//             res.status(error.statusCode).json({
+//                 success: false,
+//                 message: error.message
+//             });
+//         } else {
+//             next(error);
+//         }
+//     }
+// }
+
+
+// export async function getSubmissionStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+//     try {
+//         const { submissionId } = req.params;
+//         const status = await submissionService.getSubmissionStatus(submissionId);
+//         res.json(status);
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+export async function getRunResult(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { token } = req.params;
+        const result = await submissionService.getRunResult(token);
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function getPreviousSubmission(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const { practicalId } = req.params;
+        const studentId = req.user!.user_id;
+
+        const previousSubmission = await db
+            .select({
+                submission_id: submissions.submission_id,
+                code: submissions.code_submitted,
+                status: submissions.status,
+                submission_time: submissions.submission_time,
+                marks: submissions.marks
+            })
+            .from(submissions)
+            .where(
+                and(
+                    eq(submissions.practical_id, parseInt(practicalId)),
+                    eq(submissions.student_id, studentId)
+                )
+            )
+            .orderBy(submissions.submission_time, 'desc')
+            .limit(1);
+
+        if (previousSubmission.length === 0) {
+            return res.status(404).json({
+                message: 'No previous submission found'
+            });
+        }
+
+        res.json(previousSubmission[0]);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function submitCode(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-        const { practicalId, code, language } = req.body;
+        const { practicalId, code, language, submissionId } = req.body;
         const studentId = req.user!.user_id;
 
         if (!practicalId || !code || !language) {
             throw new AppError(400, 'Missing required fields');
         }
 
+        // Check for existing accepted submission
+        const existingSubmission = await db
+            .select()
+            .from(submissions)
+            .where(
+                and(
+                    eq(submissions.practical_id, practicalId),
+                    eq(submissions.student_id, studentId),
+                    eq(submissions.status, 'Accepted')
+                )
+            )
+            .limit(1);
+
+        if (existingSubmission.length > 0) {
+            return res.status(200).json({
+                alreadySubmitted: true,
+                message: 'You have already submitted this practical successfully.',
+                status: "Accepted"
+            });
+        }
+        if (submissionId && submissionId !== -1) {
+            const result = await submissionService.updateSubmissionCode({
+                submissionId,
+                code,
+                language,
+                practicalId,
+                studentId
+            });
+            console.log("asd")
+            return res.status(200).json(result);
+        }
         const result = await submissionService.submitCode({
             practicalId,
             studentId,
             code,
             language
         });
+        console.log("dsa")
 
-        // res.status(201).json({
-        //     success: true,
-        //     message: 'Code submitted successfully',
-        //     data: result
-        // });
         res.status(201).json(result);
     } catch (error) {
         if (error instanceof AppError) {
@@ -142,21 +241,15 @@ export async function submitCode(req: AuthenticatedRequest, res: Response, next:
     }
 }
 
-export async function getRunResult(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    try {
-        const { token } = req.params;
-        const result = await submissionService.getRunResult(token);
-        res.json(result);
-    } catch (error) {
-        next(error);
-    }
-}
-
 export async function getSubmissionStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { submissionId } = req.params;
         const status = await submissionService.getSubmissionStatus(submissionId);
-        res.json(status);
+        res.json({
+            completed: status.completed,
+            status: status.status,
+            // Don't include detailed test results
+        });
     } catch (error) {
         next(error);
     }
@@ -202,12 +295,12 @@ export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest
                 or(
                     // Include practicals where:
                     // 1. No batch access record exists (lock is null)
-                    // isNull(batch_practical_access.lock),
+                    isNull(batch_practical_access.lock),
                     // 2. Batch access exists and practical is not locked
                     eq(batch_practical_access.lock, false),
                     // 3. Student has already made a submission (regardless of lock status)
-                    eq(submissions.status, "Accepted"),
-                    // isNotNull(submissions.status)
+                    // eq(submissions.status, "Accepted"),
+                    isNotNull(submissions.status)
                 )
             )
             .orderBy(practicals.sr_no);
@@ -221,3 +314,4 @@ export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest
         });
     }
 }
+
