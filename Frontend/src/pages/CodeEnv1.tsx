@@ -60,10 +60,11 @@ const CodingEnvironmentPage = () => {
     status?: string;
     submission_id?: number;
     marks?: number;
+    submission_time: any;
   } | null>(null);
 
   // Maximum number of polling attempts and interval
-  const MAX_POLL_ATTEMPTS = 30;
+  const MAX_POLL_ATTEMPTS = 10;
   const POLL_INTERVAL = 5000;
 
   useEffect(() => {
@@ -93,6 +94,16 @@ const CodingEnvironmentPage = () => {
           if (submission.status !== "Accepted") {
             setCode(submission.code);
           }
+        }
+        if (
+          prevSubmissionResponse.data?.message ===
+          "No previous submission found"
+        ) {
+          toast({
+            title: "Information",
+            description: "You have not before submitted",
+            variant: "default",
+          });
         }
       } catch (error) {
         toast({
@@ -173,11 +184,15 @@ const CodingEnvironmentPage = () => {
   const pollSubmissionStatus = async (submissionId) => {
     try {
       let attempts = 0;
-      const maxAttempts = 20;
-      const pollInterval = 3000; // 3 seconds
 
-      while (attempts < maxAttempts) {
-        const response = await api.get(`/submissions/${submissionId}/status`);
+      while (attempts < MAX_POLL_ATTEMPTS) {
+        const response = await api.get(
+          `/submissions/${
+            submissionId === undefined
+              ? previousSubmission?.submission_id
+              : submissionId
+          }/status`
+        );
 
         if (response.data.completed) {
           setSubmissionStatus(response.data.status);
@@ -186,7 +201,7 @@ const CodingEnvironmentPage = () => {
         }
 
         attempts++;
-        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
       }
 
       throw new Error("Polling timeout");
@@ -218,7 +233,6 @@ const CodingEnvironmentPage = () => {
       });
       return;
     }
-
     if (previousSubmission?.status === "Accepted") {
       toast({
         title: "Already Submitted",

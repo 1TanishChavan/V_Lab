@@ -1935,6 +1935,7 @@ async function processSubmissionResults(submissionId: number, results: Submissio
 
 export async function getSubmissionStatus(submissionId: string) {
     const data = await redis.get(`submission:${submissionId}`);
+    console.log(data);
     if (!data) {
         const [submission] = await db
             .select()

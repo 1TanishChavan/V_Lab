@@ -169,7 +169,7 @@ export async function getPreviousSubmission(req: AuthenticatedRequest, res: Resp
             .limit(1);
 
         if (previousSubmission.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 message: 'No previous submission found'
             });
         }
