@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api, { getBatchesByDepartmentAndSemeter } from "../services/api";
+import api from "../services/api";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,15 @@ import {
 } from "../components/ui/table";
 import { Input } from "../components/ui/input";
 
+interface Student {
+  student_id: number;
+  name: string;
+  email: string;
+  semester: number;
+  division: string;
+  batch: string;
+}
+
 const StudentsPage = () => {
   const [filters, setFilters] = useState({
     department: "",
@@ -25,20 +34,35 @@ const StudentsPage = () => {
     division: "",
     batch: "",
   });
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [departments, setDepartments] = useState([]);
-  const [semesters] = useState([1, 2, 3, 4, 5, 6, 7, 8]); // Static semesters
+  const [semesters] = useState([1, 2, 3, 4, 5, 6, 7, 8]);
   const [divisions, setDivisions] = useState([]);
   const [batches, setBatches] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  // Fetch departments initially
+  // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
-      const departmentData = await api.get("/departments");
-      setDepartments(departmentData.data);
-      fetchStudents(); // Initial student fetch
+      try {
+        const [departmentData, divisionData] = await Promise.all([
+          api.get("/departments"),
+          api.get("/students/divisions"),
+          // api.get("/students/batches"),
+        ]);
+
+        setDepartments(departmentData.data);
+        setDivisions(divisionData.data);
+        // setBatches(batchData.data);
+
+        // Initial student fetch
+        fetchStudents();
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      }
     };
 
     fetchInitialData();
@@ -48,8 +72,18 @@ const StudentsPage = () => {
   const fetchStudents = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get("/students", { params: filters });
+      // Only include non-empty filters in the request
+      const activeFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== "")
+      );
+
+      const response = await api.get("/students", {
+        params: activeFilters,
+      });
       setStudents(response.data);
+      setFilteredStudents(response.data);
+    } catch (error) {
+      console.error("Error fetching students:", error);
     } finally {
       setIsLoading(false);
     }
@@ -57,38 +91,66 @@ const StudentsPage = () => {
 
   // Handle filter changes
   const handleFilterChange = async (name: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "department"
-        ? { semester: "", division: "", batch: "" }
-        : {}), // Clear lower-level filters if department changes
-      ...(name === "semester" ? { division: "", batch: "" } : {}),
-    }));
+    setFilters((prev) => {
+      const newFilters = {
+        ...prev,
+        [name]: value,
+        // Reset dependent filters
+        ...(name === "department" && { semester: "", division: "", batch: "" }),
+        ...(name === "semester" && { division: "", batch: "" }),
+        ...(name === "division" && { batch: "" }),
+      };
 
-    // Fetch divisions and batches based on department and semester
-    if (name === "department" || name === "semester") {
-      const departmentID = filters.department || value;
-      const semester = filters.semester || value;
+      // Fetch students with new filters
+      (async () => {
+        setIsLoading(true);
+        try {
+          if (name === "department") {
+            // Fetch new divisions and batches for selected department
+            const divisionData = await api.get("/students/divisions", {
+              params: { department: value },
+            });
+            setDivisions(divisionData.data);
+          }
 
-      // if (departmentID && semester) {
-      //   const batchData = await getBatchesByDepartmentAndSemeter(
-      //     parseInt(departmentID),
-      //     parseInt(semester)
-      //   );
-      //   setBatches(batchData.data);
-      // }
+          if (name === "semester" && filters.department) {
+            // Fetch batches for selected department and semester
+            const batchData = await api.get(
+              `/students/batches/${filters.department}/${value}`
+            );
+            setBatches(batchData.data);
+          }
 
-      const divisionData = await api.get("/students/divisions");
-      setDivisions(divisionData.data);
+          // Fetch students with new filters
+          const activeFilters = Object.fromEntries(
+            Object.entries(newFilters).filter(([_, v]) => v !== "")
+          );
+          const response = await api.get("/students", {
+            params: activeFilters,
+          });
+          setStudents(response.data);
+          setFilteredStudents(response.data);
+        } catch (error) {
+          console.error("Error updating filters:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      })();
 
-      const BatchData = await api.get("/students/divisions");
-      setBatches(BatchData.data);
-    }
-
-    // Refetch students when filters change
-    fetchStudents();
+      return newFilters;
+    });
   };
+
+  // Handle search
+  useEffect(() => {
+    const searchResults = students.filter((student) =>
+      Object.values(student)
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    );
+    setFilteredStudents(searchResults);
+  }, [searchQuery, students]);
 
   // Navigate to StudentSubmissions page
   const handleStudentClick = (studentID: number) => {
@@ -112,7 +174,7 @@ const StudentsPage = () => {
             {departments.map((department: any) => (
               <SelectItem
                 key={department.department_id}
-                value={department.department_id}
+                value={department.department_id.toString()}
               >
                 {department.name}
               </SelectItem>
@@ -123,13 +185,13 @@ const StudentsPage = () => {
         <Select
           value={filters.semester}
           onValueChange={(value) => handleFilterChange("semester", value)}
-          disabled={!filters.department} // Disabled if no department is selected
+          disabled={!filters.department}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Semester" />
           </SelectTrigger>
           <SelectContent>
-            {semesters.map((semester: number) => (
+            {semesters.map((semester) => (
               <SelectItem key={semester} value={semester.toString()}>
                 Semester {semester}
               </SelectItem>
@@ -140,13 +202,13 @@ const StudentsPage = () => {
         <Select
           value={filters.division}
           onValueChange={(value) => handleFilterChange("division", value)}
-          disabled={!filters.semester} // Disabled if no semester is selected
+          disabled={!filters.semester}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Division" />
           </SelectTrigger>
           <SelectContent>
-            {divisions.map((division: any) => (
+            {divisions.map((division: string) => (
               <SelectItem key={division} value={division}>
                 {division}
               </SelectItem>
@@ -157,13 +219,13 @@ const StudentsPage = () => {
         <Select
           value={filters.batch}
           onValueChange={(value) => handleFilterChange("batch", value)}
-          disabled={!filters.division} // Disabled if no division is selected
+          disabled={!filters.division}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Batch" />
           </SelectTrigger>
           <SelectContent>
-            {batches.map((batch: any) => (
+            {batches.map((batch: string) => (
               <SelectItem key={batch} value={batch}>
                 {batch}
               </SelectItem>
@@ -174,7 +236,13 @@ const StudentsPage = () => {
 
       {/* Search Box */}
       <div className="mb-4">
-        <Input type="text" placeholder="Search Students" className="w-full" />
+        <Input
+          type="text"
+          placeholder="Search Students"
+          className="w-full"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
       {/* Loading Indicator */}
@@ -192,7 +260,7 @@ const StudentsPage = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {students.map((student: any) => (
+          {filteredStudents.map((student) => (
             <TableRow key={student.student_id}>
               <TableCell>
                 <button

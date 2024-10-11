@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCourseStore } from "../store/courseStore";
+import { usePracticalStore } from "../store/practicalStore";
 import api from "../services/api";
-import { Breadcrumb } from "../components/ui/breadcrumb";
 import {
   Card,
   CardContent,
@@ -23,13 +23,17 @@ interface TestCase {
   isPublic: boolean;
 }
 
-const PracticalCreation: React.FC = () => {
-  const { courseId } = useParams<{ courseId: string }>();
+const PracticalUpdate: React.FC = () => {
+  const { practicalId, courseId } = useParams<{
+    practicalId: string;
+    courseId: string;
+  }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const course = useCourseStore((state) =>
     state.courses.find((c) => c.course_id.toString() === courseId)
   );
+  const { updatePractical } = usePracticalStore();
 
   const [srNo, setSrNo] = useState("");
   const [title, setTitle] = useState("");
@@ -46,6 +50,37 @@ const PracticalCreation: React.FC = () => {
   >([]);
 
   useEffect(() => {
+    const fetchPracticalData = async () => {
+      try {
+        const response = await api.get(`/practicals/${practicalId}`);
+        const practical = response.data;
+
+        setSrNo(practical.sr_no.toString());
+        setTitle(practical.practical_name);
+        setDescription(practical.description);
+        setPdfUrl(practical.pdf_url || "");
+        setProgrammingLanguages(
+          practical.prac_language.map((lang: any) =>
+            lang.programming_language_id.toString()
+          )
+        );
+        setTestCases(
+          practical.prac_io.map((io: any) => ({
+            input: io.input,
+            output: io.output,
+            isPublic: io.isPublic,
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to fetch practical details:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch practical details",
+          variant: "destructive",
+        });
+      }
+    };
+
     const fetchLanguages = async () => {
       try {
         const response = await api.get("/programming-languages");
@@ -64,8 +99,10 @@ const PracticalCreation: React.FC = () => {
         });
       }
     };
+
+    fetchPracticalData();
     fetchLanguages();
-  }, [toast]);
+  }, [practicalId, toast]);
 
   const handleTestCaseChange = (
     index: number,
@@ -89,7 +126,7 @@ const PracticalCreation: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/practicals", {
+      await updatePractical(parseInt(practicalId!), {
         sr_no: parseInt(srNo),
         practical_name: title,
         description,
@@ -100,16 +137,17 @@ const PracticalCreation: React.FC = () => {
           programming_language_id: parseInt(lang),
         })),
       });
+
       toast({
         title: "Success",
-        description: "Practical created successfully!",
+        description: "Practical updated successfully!",
       });
       navigate(`/practicals/${courseId}`);
     } catch (error) {
-      console.error("Failed to create practical:", error);
+      console.error("Failed to update practical:", error);
       toast({
         title: "Error",
-        description: "Failed to create practical",
+        description: "Failed to update practical",
         variant: "destructive",
       });
     }
@@ -117,20 +155,12 @@ const PracticalCreation: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* <Breadcrumb>
-        <Breadcrumb.Item href="/courses">Courses</Breadcrumb.Item>
-        <Breadcrumb.Item href={`/course/${courseId}`}>
-          {course?.course_name}
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>New Practical</Breadcrumb.Item>
-      </Breadcrumb> */}
-
       <h1 className="text-3xl font-bold mb-6">{course?.course_name}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Create New Practical</CardTitle>
+            <CardTitle>Update Practical</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
@@ -224,10 +254,10 @@ const PracticalCreation: React.FC = () => {
           </CardFooter>
         </Card>
 
-        <Button type="submit">Create Practical</Button>
+        <Button type="submit">Update Practical</Button>
       </form>
     </div>
   );
 };
 
-export default PracticalCreation;
+export default PracticalUpdate;

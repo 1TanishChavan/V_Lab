@@ -10,6 +10,7 @@ const AuthTabs = lazy(() => import("./pages/AuthTabs"));
 const Courses = lazy(() => import("./pages/Courses"));
 const CourseAssign = lazy(() => import("./pages/CourseAssign"));
 const PracticalCreation = lazy(() => import("./pages/PracticalCreation"));
+const PracticalUpdate = lazy(() => import("./pages/PracticalUpdate"));
 
 const PracticalSubmission = lazy(() => import("./pages/PracticalSubmission"));
 const PracticalList = lazy(() => import("./pages/PracticalList"));
@@ -95,12 +96,17 @@ const App: React.FC = () => {
                 <Route path="/batches" element={<PracticalList />} />
                 <Route path="/Students" element={<Students />} />
                 <Route
-                  path="/StudentSubmissions:/studentId"
+                  path="/StudentSubmissions/:studentId"
                   element={<StudentSubmissions />}
                 />
                 <Route path="/faculty" element={<FacultyDetails />} />
                 <Route path="/departments" element={<Department />} />
                 <Route path="/division" element={<Batches />} />
+
+                <Route
+                  path="/practicals/:courseId/:practicalId/edit"
+                  element={<PracticalUpdate />}
+                />
                 {/* <Route
                 path="/view-code/:submissionId"
                 element={<ViewCodePage />}

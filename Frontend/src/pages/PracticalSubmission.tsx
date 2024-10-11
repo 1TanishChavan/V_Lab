@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { useAuthStore } from "../store/authStore";
 
 const PracticalSubmissionPage = () => {
   const { practicalId } = useParams();
@@ -41,6 +42,7 @@ const PracticalSubmissionPage = () => {
   const [practicalName, setPracticalName] = useState("");
   const [searchRollId, setSearchRollId] = useState("");
   const { toast } = useToast();
+  const user: any = useAuthStore((state) => state.user);
 
   useEffect(() => {
     fetchBatches();
@@ -59,7 +61,7 @@ const PracticalSubmissionPage = () => {
 
   const fetchBatches = async () => {
     try {
-      const response = await api.get(`/faculty/batches`);
+      const response = await api.get(`/faculty/batches/${user.user_id}`);
       setBatches(response.data);
       if (response.data.length > 0) {
         setSelectedBatch(response.data[0].batch_id);

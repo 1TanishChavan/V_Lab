@@ -21,6 +21,7 @@ import {
 } from "../components/ui/select";
 import {
   Breadcrumb,
+  BreadcrumbSeparator,
   BreadcrumbItem,
   BreadcrumbLink,
 } from "../components/ui/breadcrumb";
@@ -81,14 +82,17 @@ const PracticalSubmissionDetails = () => {
         <BreadcrumbItem>
           <BreadcrumbLink href="/">Home</BreadcrumbLink>
         </BreadcrumbItem>
+        <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink href="/courses">Courses</BreadcrumbLink>
         </BreadcrumbItem>
+        <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink href={`/practical-submission/${practicalId}`}>
             Practical Submissions
           </BreadcrumbLink>
         </BreadcrumbItem>
+        <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink>Submission Details</BreadcrumbLink>
         </BreadcrumbItem>

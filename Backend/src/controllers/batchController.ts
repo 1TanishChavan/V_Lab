@@ -8,10 +8,10 @@ export async function getBatches(req: Request, res: Response) {
     const { department_id, semester } = req.query;
   
     try {
-      const batches = await batchService.getBatches({
-        department_id: parseInt(department_id as string),
-        semester: parseInt(semester as string),
-      });
+      const batches = await batchService.getBatchesByDepartmentAndSemester(
+        parseInt(department_id as string),
+        parseInt(semester as string),
+      );
       res.status(200).json(batches);
     } catch (error) {
       console.error("Error fetching batches:", error);
@@ -57,23 +57,23 @@ export async function getBatchesByDepartmentAndSemester(req: Request, res: Respo
 }
 
 // Add batch and division
-export async function addBatch(req: Request, res: Response) {
-    const { department_id, semester, division, batch } = req.body;
+// export async function addBatch(req: Request, res: Response) {
+//     const { department_id, semester, division, batch } = req.body;
   
-    if (!department_id || !semester || !division || !batch) {
-      throw new AppError(400, 'Missing required fields');
-    }
+//     if (!department_id || !semester || !division || !batch) {
+//       throw new AppError(400, 'Missing required fields');
+//     }
   
-    try {
-      const newBatch = await batchService.addBatch({
-        department_id,
-        semester,
-        division,
-        batch,
-      });
-      res.status(201).json(newBatch);
-    } catch (error) {
-      console.error("Error adding batch:", error);
-      res.status(500).json({ error: "Failed to add batch" });
-    }
-}
+//     try {
+//       const newBatch = await batchService.addBatch({
+//         department_id,
+//         semester,
+//         division,
+//         batch,
+//       });
+//       res.status(201).json(newBatch);
+//     } catch (error) {
+//       console.error("Error adding batch:", error);
+//       res.status(500).json({ error: "Failed to add batch" });
+//     }
+// }

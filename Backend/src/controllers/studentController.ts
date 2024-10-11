@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as studentService from 'services/studentService';
+import * as submissionService from 'services/submissionService';
 import { AppError } from '../../src/utils/errors';
 
 export async function getStudentsByDepartment(req: Request, res: Response, next: NextFunction) {

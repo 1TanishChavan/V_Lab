@@ -12,11 +12,6 @@ import {
 } from "../components/ui/table";
 import { Button } from "../components/ui/button";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-} from "../components/ui/breadcrumb";
-import {
   Card,
   CardHeader,
   CardTitle,
@@ -36,7 +31,9 @@ const StudentSubmissionsPage = () => {
 
   const fetchStudentDetails = async () => {
     try {
-      const response = await api.get(`/students/${studentId}`);
+      const response = await api.get(
+        `/submissions/student-details/${studentId}`
+      );
       setStudent(response.data);
     } catch (error) {
       console.error("Error fetching student details:", error);
@@ -120,9 +117,9 @@ const StudentSubmissionsPage = () => {
               <TableCell>{submission.marks}</TableCell>
               <TableCell>
                 <Button
-                  // @ts-ignore
+                  //@ts-ignore
                   as={Link}
-                  to={`/practical-submission/${submission.practical_id}/${submission.submission_id}`}
+                  to={`/practical-submission-details/${submission.practical_id}/${submission.submission_id}`}
                   variant="outline"
                 >
                   View Details

@@ -126,12 +126,6 @@ const PracticalList = () => {
       if (accessData.lock == null) {
         accessData.lock = false;
       }
-      // await api.post("/batch-practical-access", {
-      //   practical_id: selectedPracticalId,
-      //   batch_id: batchId,
-      //   lock: accessData.lock,
-      //   deadline: accessData.deadline,
-      // });
 
       await api.post("/batch-practical-access", {
         practical_id: selectedPracticalId,
@@ -152,33 +146,6 @@ const PracticalList = () => {
     fetchBatchAccess(practicalId);
     setIsDrawerOpen(true);
   };
-
-  // const handleAccessSubmit = async (batchId) => {
-  //   try {
-  //     const accessData = batchAccess.find(
-  //       (access) => access.batch_id === batchId
-  //     );
-  //     if (accessData) {
-  //       await api.put(
-  //         `/batch-practical-access/${accessData.batch_practical_access_id}`,
-  //         {
-  //           lock: accessData.lock,
-  //           deadline: accessData.deadline,
-  //         }
-  //       );
-  //     } else {
-  //       await api.post("/batch-practical-access", {
-  //         practical_id: selectedPracticalId,
-  //         batch_id: batchId,
-  //         lock: false,
-  //         deadline: new Date().toISOString(),
-  //       });
-  //     }
-  //     fetchBatchAccess(selectedPracticalId);
-  //   } catch (error) {
-  //     console.error("Error updating batch access:", error);
-  //   }
-  // };
 
   const handleDelete = async (practicalId) => {
     try {
@@ -208,7 +175,7 @@ const PracticalList = () => {
               size="sm"
               onClick={() =>
                 navigate(
-                  `/practical-update/${courseId}/${practical.practical_id}`
+                  `/practicals/${courseId}/${practical.practical_id}/edit`
                 )
               }
             >

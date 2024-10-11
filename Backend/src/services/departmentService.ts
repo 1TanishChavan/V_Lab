@@ -45,6 +45,7 @@ export async function getAllDepartments() {
 }
 
 export async function createDepartment(departmentData: { name: string }) {
+    // @ts-ignore
     const result = await db.insert(departments).values(departmentData.name);
     return await db.select().from(departments).where(eq(departments.department_id, result[0].insertId)).limit(1);
 }
@@ -57,6 +58,7 @@ export async function updateDepartment(id: number, departmentData: { name: strin
     }
 
     await db.update(departments)
+        // @ts-ignore
         .set(departmentData.name)
         .where(eq(departments.department_id, id));
 

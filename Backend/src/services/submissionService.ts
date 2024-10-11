@@ -384,6 +384,7 @@ export async function updateSubmission(submissionId: number, updateData: { statu
     try {
         await db.update(submissions)
             .set({
+                // @ts-ignore
                 status: updateData.status,
                 marks: updateData.marks,
             })
@@ -416,6 +417,56 @@ export async function getFacultyBatches(facultyId: number) {
         throw new AppError(500, 'Failed to fetch faculty batches');
     }
 }
+
+// export async function getStudentSubmissions(studentId: number) {
+//     try {
+//         const studentSubmissions = await db
+//             .select({
+//                 submission_id: submissions.submission_id,
+//                 practical_id: submissions.practical_id,
+//                 practical_sr_no: practicals.sr_no,
+//                 practical_name: practicals.practical_name,
+//                 course_name: courses.course_name,
+//                 submission_time: submissions.submission_time,
+//                 status: submissions.status,
+//                 marks: submissions.marks,
+//             })
+//             .from(submissions)
+//             .innerJoin(practicals, eq(submissions.practical_id, practicals.practical_id))
+//             .innerJoin(courses, eq(practicals.course_id, courses.course_id))
+//             .where(eq(submissions.student_id, studentId));
+
+//         return studentSubmissions;
+//     } catch (error) {
+//         console.error('Error in getStudentSubmissions:', error);
+//         throw new AppError(500, 'Failed to fetch student submissions');
+//     }
+// }
+
+// export async function getStudentDetails(studentId: number) {
+//     try {
+//         const studentDetails = await db
+//             .select({
+//                 student_id: students.student_id,
+//                 name: users.username,
+//                 email: users.email,
+//                 roll_id: students.roll_id,
+//                 semester: batch.semester,
+//                 division: batch.division,
+//                 batch: batch.batch,
+//             })
+//             .from(students)
+//             .innerJoin(users, eq(students.student_id, users.user_id))
+//             .innerJoin(batch, eq(students.batch_id, batch.batch_id))
+//             .where(eq(students.student_id, studentId))
+//             .limit(1);
+
+//         return studentDetails[0];
+//     } catch (error) {
+//         console.error('Error in getStudentDetails:', error);
+//         throw new AppError(500, 'Failed to fetch student details');
+//     }
+// }
 
 export async function getStudentSubmissions(studentId: number) {
     try {
@@ -460,10 +511,14 @@ export async function getStudentDetails(studentId: number) {
             .where(eq(students.student_id, studentId))
             .limit(1);
 
+        if (studentDetails.length === 0) {
+            throw new AppError(404, 'Student not found');
+        }
+
         return studentDetails[0];
     } catch (error) {
         console.error('Error in getStudentDetails:', error);
-        throw new AppError(500, 'Failed to fetch student details');
+        throw error instanceof AppError ? error : new AppError(500, 'Failed to fetch student details');
     }
 }
 
@@ -1521,7 +1576,7 @@ export async function runCode(runData: { code: string; language: string; input: 
             time: result.time,
             memory: result.memory
         };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error in runCode:', error);
         if (error.response && error.response.status === 422) {
             console.error('Judge0 API Error:', error.response.data);
@@ -1928,7 +1983,7 @@ async function processSubmissionResults(submissionId: number, results: Submissio
     } catch (error) {
         console.error('Error processing submission results:', error);
         await db.update(submissions)
-            .set({ status: 'Error' })
+            .set({ status: 'Rejected' })
             .where(eq(submissions.submission_id, submissionId));
     }
 }

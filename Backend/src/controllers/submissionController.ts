@@ -49,6 +49,27 @@ export async function updateSubmission(req: AuthenticatedRequest, res: Response,
         next(error);
     }
 }
+// export async function getStudentSubmissions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+//     try {
+//         const { studentId } = req.params;
+//         const submissions = await submissionService.getStudentSubmissions(parseInt(studentId));
+//         res.json(submissions);
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+// export async function getStudentDetails(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+//     try {
+//         const { studentId } = req.params;
+//         const studentDetails = await submissionService.getStudentDetails(parseInt(studentId));
+//         res.json(studentDetails);
+//     } catch (error) {
+//         next(error);
+//     }
+// }
+
+
 export async function getStudentSubmissions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { studentId } = req.params;
@@ -68,6 +89,7 @@ export async function getStudentDetails(req: AuthenticatedRequest, res: Response
         next(error);
     }
 }
+
 
 export async function updateStudent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
@@ -165,6 +187,7 @@ export async function getPreviousSubmission(req: AuthenticatedRequest, res: Resp
                     eq(submissions.student_id, studentId)
                 )
             )
+            // @ts-ignore
             .orderBy(submissions.submission_time, 'desc')
             .limit(1);
 

@@ -1,6 +1,5 @@
 import express from 'express';
 import {
-    createSubmission,
     getSubmissionsByPractical,
     getSubmissionById,
     updateSubmission,
@@ -24,8 +23,8 @@ router.post('/submit-code', authMiddleware, createRateLimiter({
 router.get('/practical/:practicalId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getSubmissionsByPractical);
 router.get('/:submissionId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getSubmissionById);
 router.put('/:submissionId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), updateSubmission);
-router.get('/student/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentSubmissions);
-router.get('/student-details/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentDetails);
+// router.get('/student/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentSubmissions);
+// router.get('/student-details/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentDetails);
 router.put('/student/:studentId', authMiddleware, roleMiddleware(['HOD']), updateStudent);
 router.delete('/student/:studentId', authMiddleware, roleMiddleware(['HOD']), deleteStudent);
 router.post('/run', authMiddleware, createRateLimiter({
@@ -36,5 +35,9 @@ router.get('/run/:token', authMiddleware, getRunResult);
 router.get('/:submissionId/status', authMiddleware, getSubmissionStatus);
 
 router.get('/previous/:practicalId', authMiddleware, getPreviousSubmission);
+
+router.get('/student/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentSubmissions);
+router.get('/student-details/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentDetails);
+
 
 export default router;

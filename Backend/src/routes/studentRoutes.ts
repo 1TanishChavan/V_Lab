@@ -14,7 +14,7 @@ router.get('/department/:department', authMiddleware, getStudentsByDepartment);
 router.get('/batch/:batchId', authMiddleware, getStudentsByBatch);
 router.get('/roll/:rollId', authMiddleware, getStudentByRollId);
 router.get('/department/:departmentId/semester/:semester', authMiddleware, getStudentsByDepartmentAndSemester);
-router.get('/student/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentSubmissions);
+router.get('/:studentId', authMiddleware, roleMiddleware(['Faculty', 'HOD']), getStudentSubmissions);
 
 
 router.get('/', authMiddleware, roleMiddleware(['Faculty', 'HOD', 'Admin']), getStudentsWithFilters);

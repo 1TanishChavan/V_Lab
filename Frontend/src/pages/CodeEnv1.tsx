@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Editor } from "@monaco-editor/react";
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
 import {
   Breadcrumb,
@@ -9,7 +9,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
   BreadcrumbLink,
-} from "../components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb";
 import { Slash } from "lucide-react";
 import {
   Card,
@@ -17,8 +17,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { useToast } from "../components/hooks/use-toast";
+} from "@/components/ui/card";
+import { useToast } from "@/components/hooks/use-toast";
 import api from "../services/api";
 import {
   Select,
@@ -28,9 +28,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
-import { Textarea } from "../components/ui/textarea";
-import { Toaster } from "../components/ui/toaster";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Toaster } from "@/components/ui/toaster";
 import { Loader2 } from "lucide-react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -117,16 +117,18 @@ const CodingEnvironmentPage = () => {
     const fetchLanguages = async () => {
       try {
         const response = await api.get(`/practicals/${practicalId}/languages`);
-        setLanguages(response.data);
-        if (response.data.length > 0) {
+        const fetchedLanguages = response.data || []; // Ensure it is an array
+
+        setLanguages(fetchedLanguages);
+        if (fetchedLanguages.length > 0) {
           setLanguage(
-            response.data[0].programming_language?.programming_language_id?.toString()
+            fetchedLanguages[0].programming_language_id?.toString() || ""
           );
         }
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to fetch languages",
+          description: "Failed to fetch practical languages",
           variant: "destructive",
         });
       }
@@ -340,11 +342,9 @@ const CodingEnvironmentPage = () => {
 
   const getLanguageName = (languageId) => {
     const selectedLanguage = languages.find(
-      (lang) =>
-        lang.programming_language?.programming_language_id?.toString() ===
-        languageId
+      (lang) => lang.programming_language_id?.toString() === languageId
     );
-    return selectedLanguage?.programming_language?.language_name || "";
+    return selectedLanguage?.language_name || "";
   };
 
   // return (
@@ -598,11 +598,10 @@ const CodingEnvironmentPage = () => {
                   <SelectLabel>Languages</SelectLabel>
                   {languages.map((lang) => (
                     <SelectItem
-                      key={lang.programming_language?.programming_language_id}
-                      value={lang.programming_language?.programming_language_id?.toString()}
+                      key={lang.programming_language_id}
+                      value={lang.programming_language_id?.toString()}
                     >
-                      {lang.programming_language?.language_name ||
-                        "Unknown Language"}
+                      {lang.language_name || "Unknown Language"}
                     </SelectItem>
                   ))}
                 </SelectGroup>
