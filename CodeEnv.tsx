@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import SubmissionFeedback from "@/components/SubmissionFeedback";
+// import SubmissionFeedback from "@/components/SubmissionFeedback";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
 const CodingEnvironmentPage = () => {
-  const { courseId, practicalId } = useParams();
+  const { practicalId } = useParams();
   const [courseName, setCourseName] = useState("");
   const [practicalName, setPracticalName] = useState("");
   const [pdfUrl, setPdfUrl] = useState("");
@@ -38,7 +38,7 @@ const CodingEnvironmentPage = () => {
   const { user } = useAuthStore();
   const { toast } = useToast();
   const [submissionStatus, setSubmissionStatus] = useState(null);
-  const [testResults, setTestResults] = useState([]);
+  // const [testResults, setTestResults] = useState([]);
   const [customInput, setCustomInput] = useState("");
   const [runOutput, setRunOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -262,24 +262,24 @@ const CodingEnvironmentPage = () => {
     }
   };
 
-  const pollSubmissionResults = async (submissionId) => {
-    const maxAttempts = 10;
-    const pollInterval = 2000; // 2 seconds
+  // const pollSubmissionResults = async (submissionId) => {
+  //   const maxAttempts = 10;
+  //   const pollInterval = 2000; // 2 seconds
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const response = await api.get(`/submissions/${submissionId}/results`);
-        if (response.data.status === "completed") {
-          return response.data;
-        }
-        await new Promise((resolve) => setTimeout(resolve, pollInterval));
-      } catch (error) {
-        console.error("Polling error:", error);
-        throw new Error("Failed to get submission results");
-      }
-    }
-    throw new Error("Submission processing timeout");
-  };
+  //   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  //     try {
+  //       const response = await api.get(`/submissions/${submissionId}/results`);
+  //       if (response.data.status === "completed") {
+  //         return response.data;
+  //       }
+  //       await new Promise((resolve) => setTimeout(resolve, pollInterval));
+  //     } catch (error) {
+  //       console.error("Polling error:", error);
+  //       throw new Error("Failed to get submission results");
+  //     }
+  //   }
+  //   throw new Error("Submission processing timeout");
+  // };
 
   // const handleSubmit = async () => {
   //   if (!user) {

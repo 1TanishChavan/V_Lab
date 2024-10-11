@@ -116,22 +116,6 @@ const PracticalSubmissionPage = () => {
 
   return (
     <div className="container mx-auto mt-4 p-4">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/">
-            Home
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/courses">
-            Courses
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink>Practical Submissions</BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
-
       <Card>
         <CardHeader>
           <CardTitle>Practical Submissions</CardTitle>

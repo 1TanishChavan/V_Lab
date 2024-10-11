@@ -103,35 +103,51 @@ export async function getFacultyBatches(facultyId: number) {
     }
 }
 
+// Fetch all faculty members
 export async function getAllFaculty() {
     try {
-        // Fetch all faculty members
         const facultyMembers = await db
             .select({
-                user_id: faculty.faculty_id,
+                faculty_id: faculty.faculty_id,
                 department_id: faculty.department_id,
                 username: users.username,
                 email: users.email,
             })
             .from(faculty)
-            .innerJoin(users, eq(faculty.faculty_id, users.user_id));
+            .innerJoin(users, eq(users.user_id, faculty.faculty_id));
 
-        // Debugging: Log the faculty members
-        console.log("Faculty Members:", facultyMembers);
-
-        // Check if any faculty members were found
         if (!facultyMembers.length) {
             throw new AppError(404, 'No faculty members found');
         }
 
         return facultyMembers;
     } catch (error) {
-        console.error("Error in getAllFaculty:", error);
-        throw error;
+        console.error('Error fetching all faculty:', error);
+        throw new AppError(500, 'Failed to fetch faculty');
     }
 }
 
-export async function getFacultyByDepartment(departmentId: number) {
+// Fetch faculty by department
+export async function getFacultyByDepartment_omkar(departmentId: number) {
+    try {
+        return await db
+            .select({
+                faculty_id: faculty.faculty_id,
+                department_id: faculty.department_id,
+                username: users.username,
+                email: users.email,
+            })
+            .from(users)
+            .innerJoin(faculty, eq(users.user_id, faculty.faculty_id))
+            .where(eq(faculty.department_id, departmentId));
+    } catch (error) {
+        console.error('Error fetching faculty by department:', error);
+        throw new AppError(500, 'Failed to fetch faculty by department');
+    }
+}
+
+
+export async function getFacultyByDepartment_tanish(departmentId: number) {
     try {
         const facultyMembers = await db
             .select({
@@ -183,6 +199,7 @@ export async function deleteFaculty(facultyId: number) {
         throw new AppError(500, 'Failed to delete faculty');
     }
 }
+
 
 export async function getFacultyDetails(facultyId: number) {
     const facultyDetails = await db

@@ -20,7 +20,6 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@google/generative-ai": "^0.19.0",
     "@sinclair/typebox": "^0.33.7",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
@@ -28,17 +27,14 @@
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.32.1",
     "drizzle-typebox": "^0.1.1",
-    "drizzle-zod": "^0.5.1",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
-    "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "mysql2": "^3.10.3",
     "node-cache": "^5.1.2",
     "redis": "^4.7.0",
-    "winston": "^3.14.1",
-    "zod": "^3.23.8"
+    "winston": "^3.14.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

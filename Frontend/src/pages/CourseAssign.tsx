@@ -83,7 +83,7 @@ const CourseAssign: React.FC = () => {
         try {
           // Fetch faculty list
           const facultyResponse = await api.get<Faculty[]>(
-            `/faculty/department/${course.department_id}`
+            `/faculty/department2/${course.department_id}`
           );
           setFacultyList(facultyResponse.data);
 

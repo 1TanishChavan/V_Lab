@@ -16,13 +16,23 @@ export async function addFaculty(req: Request, res: Response, next: NextFunction
 }
 
 // Get faculty by department
-export async function getFacultyByDepartment(req: Request, res: Response, next: NextFunction) {
+export async function getFacultyByDepartment_omkar(req: Request, res: Response, next: NextFunction) {
     try {
         const departmentId = parseInt(req.params.departmentId, 10);
-        const faculty = await facultyService.getFacultyByDepartment(departmentId);
+        const faculty = await facultyService.getFacultyByDepartment_omkar(departmentId);
         res.json(faculty);
     } catch (error) {
         console.error('Error fetching faculty by department:', error);
+        next(error);
+    }
+}
+
+export async function getFacultyByDepartment_tanish(req: Request, res: Response, next: NextFunction) {
+    try {
+        const departmentId = parseInt(req.params.departmentId);
+        const faculty = await facultyService.getFacultyByDepartment_tanish(departmentId);
+        res.json(faculty);
+    } catch (error) {
         next(error);
     }
 }

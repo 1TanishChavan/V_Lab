@@ -61,22 +61,6 @@ const StudentSubmissionsPage = () => {
 
   return (
     <div className="container mx-auto mt-4 p-4">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/">
-            Home
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink as={Link} to="/students">
-            Students
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink>Student Submissions</BreadcrumbLink>
-        </BreadcrumbItem>
-      </Breadcrumb>
-
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Student Details</CardTitle>

@@ -82,7 +82,7 @@ const Courses: React.FC = () => {
     deleteCourse,
   } = useCourseStore();
   const { departments, fetchDepartments } = useDepartmentStore();
-  const user = useAuthStore((state) => state.user);
+  const user: any = useAuthStore((state) => state.user);
 
   const isAdmin = user?.role === "Admin";
   const isHOD = user?.role === "HOD";
@@ -177,9 +177,7 @@ const Courses: React.FC = () => {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/">
-              Home
-            </BreadcrumbLink>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator>
             <Slash />

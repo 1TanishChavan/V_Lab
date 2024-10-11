@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCourseStore } from "../store/courseStore";
+// import { useCourseStore } from "../store/courseStore";
 import api from "../services/api";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
+// import { Breadcrumb } from "@/components/ui/breadcrumb";
 import {
   Card,
   CardContent,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Editor } from "@monaco-editor/react";
 import { Select } from "@/components/ui/select";
@@ -19,7 +19,7 @@ const PracticalSubmissionDetailsPage = () => {
   const [practical, setPractical] = useState<any>(null);
   const [submission, setSubmission] = useState<any>(null);
   const { toast } = useToast();
-  const { user } = useAuthStore();
+  // const { user } = useAuthStore();
   const [status, setStatus] = useState("");
   const [marks, setMarks] = useState(0);
 

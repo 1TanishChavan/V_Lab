@@ -15,9 +15,7 @@ import programmingLanguageRoutes from './routes/programmingLanguageRoutes';
 import submissionRoutes from './routes/submissionRoutes';
 import courseFacultyRoutes from './routes/courseFacultyRoutes';
 import { errorHandler } from 'middlewares/errorMiddleware';
-import { loggingMiddleware } from 'middlewares/loggingMiddleware';
 import logger from './utils/logger';
-import redisRoutes from './routes/redisRoutes';  // Adjust path as needed
 dotenv.config();
 
 const app = express();
@@ -26,7 +24,6 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(loggingMiddleware);
 
 app.get("/health", (req, res) => {
     logger.info('Health check endpoint accessed');
@@ -49,5 +46,6 @@ app.use('/api/submissions', submissionRoutes);
 
 app.use(errorHandler);
 
-app.use('/api/redis', redisRoutes);
+// app.use('/api/redis', redisRoutes);
+
 export default app;

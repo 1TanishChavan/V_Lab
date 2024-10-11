@@ -1,29 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import useStudentStore from '../store/studentStore';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useEffect, useState } from "react";
+import useStudentStore from "../store/studentStore";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 
 const StudentsPage = () => {
-  const { 
-    students, 
-    isLoading, 
-    fetchStudents, 
-    fetchDepartments, 
-    fetchSemesters, 
-    fetchDivisions, 
-    fetchBatches, 
-    departments, 
-    semesters, 
-    divisions, 
-    batches 
+  const {
+    students,
+    isLoading,
+    fetchStudents,
+    fetchDepartments,
+    fetchSemesters,
+    fetchDivisions,
+    fetchBatches,
+    departments,
+    semesters,
+    divisions,
+    batches,
   } = useStudentStore();
 
   const [filters, setFilters] = useState({
-    department: '',
-    semester: '',
-    division: '',
-    batch: '',
+    department: "",
+    semester: "",
+    division: "",
+    batch: "",
   });
 
   // Fetch dropdown data when the component mounts
@@ -49,48 +62,69 @@ const StudentsPage = () => {
 
       {/* Filter Section */}
       <div className="flex flex-wrap gap-4 mb-4">
-        <Select value={filters.department} onValueChange={(value) => handleFilterChange("department", value)}>
+        <Select
+          value={filters.department}
+          onValueChange={(value) => handleFilterChange("department", value)}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Department" />
           </SelectTrigger>
           <SelectContent>
             {departments.map((department) => (
-              <SelectItem key={department.department_id} value={department.department_id}>
+              <SelectItem
+                key={department.department_id}
+                value={department.department_id}
+              >
                 {department.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select value={filters.semester} onValueChange={(value) => handleFilterChange("semester", value)}>
+        <Select
+          value={filters.semester}
+          onValueChange={(value) => handleFilterChange("semester", value)}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Semester" />
           </SelectTrigger>
           <SelectContent>
             {semesters.map((semester) => (
-              <SelectItem key={semester.id} value={semester.id}>{semester.name}</SelectItem>
+              <SelectItem key={semester.id} value={semester.id}>
+                {semester.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select value={filters.division} onValueChange={(value) => handleFilterChange("division", value)}>
+        <Select
+          value={filters.division}
+          onValueChange={(value) => handleFilterChange("division", value)}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Division" />
           </SelectTrigger>
           <SelectContent>
             {divisions.map((division) => (
-              <SelectItem key={division.id} value={division.id}>{division.name}</SelectItem>
+              <SelectItem key={division.id} value={division.id}>
+                {division.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select value={filters.batch} onValueChange={(value) => handleFilterChange("batch", value)}>
+        <Select
+          value={filters.batch}
+          onValueChange={(value) => handleFilterChange("batch", value)}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Batch" />
           </SelectTrigger>
           <SelectContent>
             {batches.map((batch) => (
-              <SelectItem key={batch.id} value={batch.id}>{batch.name}</SelectItem>
+              <SelectItem key={batch.id} value={batch.id}>
+                {batch.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

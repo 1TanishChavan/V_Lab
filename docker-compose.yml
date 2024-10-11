@@ -1,5 +1,4 @@
-x-logging:
-  &default-logging
+x-logging: &default-logging
   logging:
     driver: json-file
     options:
@@ -35,26 +34,59 @@ services:
 
   redis:
     image: redis:7.2.4
-    command: [
-      "bash", "-c",
-      'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
-    ]
-    env_file: judge0.conf  # Use judge0.conf only for the original Redis instance
+    command:
+      [
+        "bash",
+        "-c",
+        'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"',
+      ]
+    env_file: judge0.conf # Use judge0.conf only for the original Redis instance
     ports:
-      - "6379:6379"  # Exposing redis1 on port 6379
+      - "6379:6379" # Exposing redis1 on port 6379
     <<: *default-logging
     restart: always
 
   redis2:
     image: redis:7.2.4
-    command: [
-      "bash", "-c",
-      'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
-    ]
-    env_file: judge0.conf  # Use judge0.conf only for the original Redis instance
+    command:
+      [
+        "bash",
+        "-c",
+        'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"',
+      ]
+    env_file: judge0.conf # Use judge0.conf only for the original Redis instance
     ports:
       - "6380:6379" # Exposing redis2 on port 6380
     <<: *default-logging
+    restart: always
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./Backend:/app
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./Backend/.env
+    <<: *default-logging
+    depends_on:
+      - db
+      - redis2
+    restart: always
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./Frontend:/app
+    ports:
+      - "3000:3000"
+    <<: *default-logging
+    depends_on:
+      - backend
     restart: always
 
 volumes:

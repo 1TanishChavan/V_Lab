@@ -32,13 +32,21 @@ import { useAuthStore } from "../store/authStore";
 
 const FacultyPage = () => {
   const {
+    // @ts-ignore
     faculty,
+    // @ts-ignore
     departments,
+    // @ts-ignore
     fetchDepartments,
+    // @ts-ignore
     fetchFaculty,
+    // @ts-ignore
     addFaculty,
+    // @ts-ignore
     deleteFaculty,
+    // @ts-ignore
     isLoading,
+    // @ts-ignore
     error,
   } = useFacultyStore();
 
@@ -91,12 +99,26 @@ const FacultyPage = () => {
     try {
       const hashedPassword = await bcrypt.hash(newFaculty.password, 10);
       await addFaculty({ ...newFaculty, password: hashedPassword });
-      toast({ title: "Success", description: "Faculty added successfully.", variant: "success" });
+      toast({
+        title: "Success",
+        description: "Faculty added successfully.",
+        variant: "default",
+      });
       setIsFacultyModalOpen(false);
-      setNewFaculty({ username: "", email: "", password: "", department_id: "", role: "faculty" });
-    } catch (error) {
+      setNewFaculty({
+        username: "",
+        email: "",
+        password: "",
+        department_id: "",
+        role: "faculty",
+      });
+    } catch (error: any) {
       console.error("Error adding faculty:", error);
-      toast({ title: "Error", description: error?.message || "Failed to add faculty.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to add faculty.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -104,23 +126,46 @@ const FacultyPage = () => {
     try {
       const hashedPassword = await bcrypt.hash(newHOD.password, 10);
       await addFaculty({ ...newHOD, password: hashedPassword });
-      toast({ title: "Success", description: "HOD added successfully.", variant: "success" });
+      toast({
+        title: "Success",
+        description: "HOD added successfully.",
+        variant: "default",
+      });
       setIsHODModalOpen(false);
-      setNewHOD({ username: "", email: "", password: "", department_id: "", role: "HOD" });
-    } catch (error) {
+      setNewHOD({
+        username: "",
+        email: "",
+        password: "",
+        department_id: "",
+        role: "HOD",
+      });
+    } catch (error: any) {
       console.error("Error adding HOD:", error);
-      toast({ title: "Error", description: error?.message || "Failed to add HOD.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to add HOD.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleDeleteFaculty = async (facultyId) => {
-    if (!window.confirm("Are you sure you want to delete this faculty member?")) return;
+    if (!window.confirm("Are you sure you want to delete this faculty member?"))
+      return;
     try {
       await deleteFaculty(facultyId);
-      toast({ title: "Deleted", description: "Faculty member has been deleted.", variant: "success" });
+      toast({
+        title: "Deleted",
+        description: "Faculty member has been deleted.",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error deleting faculty:", error);
-      toast({ title: "Error", description: "Failed to delete faculty. Please try again.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to delete faculty. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -141,30 +186,73 @@ const FacultyPage = () => {
           </SelectContent>
         </Select>
 
-        <Input type="text" placeholder="Search by Username" value={searchQuery} onChange={handleSearch} className="w-[200px]" />
+        <Input
+          type="text"
+          placeholder="Search by Username"
+          value={searchQuery}
+          onChange={handleSearch}
+          className="w-[200px]"
+        />
 
         <Dialog open={isFacultyModalOpen} onOpenChange={setIsFacultyModalOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setIsFacultyModalOpen(true)}>Add Faculty</Button>
+            <Button onClick={() => setIsFacultyModalOpen(true)}>
+              Add Faculty
+            </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Add Faculty</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>Add Faculty</DialogTitle>
+            </DialogHeader>
             <div className="space-y-4">
-              <Input type="text" name="username" placeholder="Username" value={newFaculty.username} onChange={(e) => handleInputChange(e)} required />
-              <Input type="email" name="email" placeholder="Email" value={newFaculty.email} onChange={(e) => handleInputChange(e)} required />
-              <Input type="password" name="password" placeholder="Password" value={newFaculty.password} onChange={(e) => handleInputChange(e)} required />
-              <Select value={newFaculty.department_id} onValueChange={(value) => setNewFaculty((prev) => ({ ...prev, department_id: value }))}>
-                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select Department" /></SelectTrigger>
+              <Input
+                type="text"
+                name="username"
+                placeholder="Username"
+                value={newFaculty.username}
+                onChange={(e) => handleInputChange(e)}
+                required
+              />
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={newFaculty.email}
+                onChange={(e) => handleInputChange(e)}
+                required
+              />
+              <Input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={newFaculty.password}
+                onChange={(e) => handleInputChange(e)}
+                required
+              />
+              <Select
+                value={newFaculty.department_id}
+                onValueChange={(value) =>
+                  setNewFaculty((prev) => ({ ...prev, department_id: value }))
+                }
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
                 <SelectContent>
                   {departments.map((dep) => (
-                    <SelectItem key={dep.department_id} value={dep.department_id}>
+                    <SelectItem
+                      key={dep.department_id}
+                      value={dep.department_id}
+                    >
                       {dep.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex justify-end mt-4"><Button onClick={handleAddFaculty}>Add</Button></div>
+            <div className="flex justify-end mt-4">
+              <Button onClick={handleAddFaculty}>Add</Button>
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -174,23 +262,58 @@ const FacultyPage = () => {
               <Button onClick={() => setIsHODModalOpen(true)}>Add HOD</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Add HOD</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle>Add HOD</DialogTitle>
+              </DialogHeader>
               <div className="space-y-4">
-                <Input type="text" name="username" placeholder="Username" value={newHOD.username} onChange={(e) => handleInputChange(e, true)} required />
-                <Input type="email" name="email" placeholder="Email" value={newHOD.email} onChange={(e) => handleInputChange(e, true)} required />
-                <Input type="password" name="password" placeholder="Password" value={newHOD.password} onChange={(e) => handleInputChange(e, true)} required />
-                <Select value={newHOD.department_id} onValueChange={(value) => setNewHOD((prev) => ({ ...prev, department_id: value }))}>
-                  <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select Department" /></SelectTrigger>
+                <Input
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  value={newHOD.username}
+                  onChange={(e) => handleInputChange(e, true)}
+                  required
+                />
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={newHOD.email}
+                  onChange={(e) => handleInputChange(e, true)}
+                  required
+                />
+                <Input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={newHOD.password}
+                  onChange={(e) => handleInputChange(e, true)}
+                  required
+                />
+                <Select
+                  value={newHOD.department_id}
+                  onValueChange={(value) =>
+                    setNewHOD((prev) => ({ ...prev, department_id: value }))
+                  }
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
                   <SelectContent>
                     {departments.map((dep) => (
-                      <SelectItem key={dep.department_id} value={dep.department_id}>
+                      <SelectItem
+                        key={dep.department_id}
+                        value={dep.department_id}
+                      >
                         {dep.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex justify-end mt-4"><Button onClick={handleAddHOD}>Add</Button></div>
+              <div className="flex justify-end mt-4">
+                <Button onClick={handleAddHOD}>Add</Button>
+              </div>
             </DialogContent>
           </Dialog>
         )}
@@ -210,7 +333,12 @@ const FacultyPage = () => {
               <TableCell>{member.username}</TableCell>
               <TableCell>{member.email}</TableCell>
               <TableCell>
-                <Button variant="destructive" onClick={() => handleDeleteFaculty(member.faculty_id)}>Delete</Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteFaculty(member.faculty_id)}
+                >
+                  Delete
+                </Button>
               </TableCell>
             </TableRow>
           ))}

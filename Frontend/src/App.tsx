@@ -21,8 +21,9 @@ const CodingEnvironmentPage = lazy(() => import("./pages/CodeEnv1"));
 const PracticalSubmissionDetails = lazy(
   () => import("./pages/PracticalSubmissionDetails")
 );
-import Department from "./pages/Department";
-import Batches from "./pages/Batches";
+
+const Department = lazy(() => import("./pages/Department"));
+const Batches = lazy(() => import("./pages/Batches"));
 
 const App: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -41,68 +42,71 @@ const App: React.FC = () => {
       <Router>
         <Layout>
           <div className="flex-grow">
-          <Suspense
+            <Suspense
               fallback={
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 </>
               }
             >
-            <Routes>
-              <Route
-                path="/"
-                element={isAuthenticated ? <Courses /> : <AuthTabs />}
-              />
-              {/* <Route path="/login" element={<Login />} />
+              <Routes>
+                <Route
+                  path="/"
+                  element={isAuthenticated ? <Courses /> : <AuthTabs />}
+                />
+                {/* <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} /> */}
-              <Route path="/login" element={<AuthTabs />} />
-              <Route path="/register" element={<AuthTabs />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/Students" element={<Students />} />
-              <Route
-                path="/StudentSubmissions"
-                element={<StudentSubmissions />}
-              />
-              <Route
-                path="/course-assign/:courseId"
-                element={<CourseAssign />}
-              />
-              <Route path="/practicals/:courseId" element={<PracticalList />} />
-              <Route
-                path="/practical-creation/:courseId"
-                element={<PracticalCreation />}
-              />
-              <Route
-                path="/practical-update/:courseId/:practicalId"
-                // element={<PracticalUpdate />}
-              />
-              <Route
-                path="/practical-submission/:courseId/:practicalId"
-                element={<PracticalSubmission />}
-              />
-              <Route
-                path="/practical-submission-details/:practicalId/:submissionId"
-                element={<PracticalSubmissionDetails />}
-              />
-              <Route
-                path="/coding/:courseId/:practicalId"
-                element={<CodingEnvironmentPage />}
-              />
-              <Route path="/batches" element={<PracticalList />} />
-              <Route path="/Students" element={<Students />} />
-              <Route
-                path="/StudentSubmissions"
-                element={<StudentSubmissions />}
-              />
-              <Route path="/faculty" element={<FacultyDetails />} />
-              <Route path="/departments" element={<Department />} />
-              <Route path="/division" element={<Batches />} />
-              {/* <Route
+                <Route path="/login" element={<AuthTabs />} />
+                <Route path="/register" element={<AuthTabs />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/Students" element={<Students />} />
+                <Route
+                  path="/StudentSubmissions"
+                  element={<StudentSubmissions />}
+                />
+                <Route
+                  path="/course-assign/:courseId"
+                  element={<CourseAssign />}
+                />
+                <Route
+                  path="/practicals/:courseId"
+                  element={<PracticalList />}
+                />
+                <Route
+                  path="/practical-creation/:courseId"
+                  element={<PracticalCreation />}
+                />
+                <Route
+                  path="/practical-update/:courseId/:practicalId"
+                  // element={<PracticalUpdate />}
+                />
+                <Route
+                  path="/practical-submission/:courseId/:practicalId"
+                  element={<PracticalSubmission />}
+                />
+                <Route
+                  path="/practical-submission-details/:practicalId/:submissionId"
+                  element={<PracticalSubmissionDetails />}
+                />
+                <Route
+                  path="/coding/:courseId/:practicalId"
+                  element={<CodingEnvironmentPage />}
+                />
+                <Route path="/batches" element={<PracticalList />} />
+                <Route path="/Students" element={<Students />} />
+                <Route
+                  path="/StudentSubmissions"
+                  element={<StudentSubmissions />}
+                />
+                <Route path="/faculty" element={<FacultyDetails />} />
+                <Route path="/departments" element={<Department />} />
+                <Route path="/division" element={<Batches />} />
+                {/* <Route
                 path="/view-code/:submissionId"
                 element={<ViewCodePage />}
               /> */}
-              {/* <Route path="/dashboard" element={<Batch />} /> */}
-            </Routes>
+                {/* <Route path="/dashboard" element={<Batch />} /> */}
+              </Routes>
             </Suspense>
           </div>
         </Layout>
