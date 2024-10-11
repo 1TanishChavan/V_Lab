@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../services/api";
-import { useToast } from "@/components/hooks/use-toast";
+import { useToast } from "../components/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -9,14 +9,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+} from "../components/ui/table";
+import { Button } from "../components/ui/button";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-} from "@/components/ui/breadcrumb";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+} from "../components/ui/breadcrumb";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../components/ui/card";
 
 const StudentSubmissionsPage = () => {
   const { studentId } = useParams();
@@ -115,6 +120,7 @@ const StudentSubmissionsPage = () => {
               <TableCell>{submission.marks}</TableCell>
               <TableCell>
                 <Button
+                  // @ts-ignore
                   as={Link}
                   to={`/practical-submission/${submission.practical_id}/${submission.submission_id}`}
                   variant="outline"

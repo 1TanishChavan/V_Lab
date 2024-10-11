@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../components/ui/select";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+} from "../components/ui/table";
+import { Input } from "../components/ui/input";
 
 const StudentsPage = () => {
   const {
@@ -70,7 +70,7 @@ const StudentsPage = () => {
             <SelectValue placeholder="Select Department" />
           </SelectTrigger>
           <SelectContent>
-            {departments.map((department) => (
+            {departments.map((department: any) => (
               <SelectItem
                 key={department.department_id}
                 value={department.department_id}
@@ -89,7 +89,7 @@ const StudentsPage = () => {
             <SelectValue placeholder="Select Semester" />
           </SelectTrigger>
           <SelectContent>
-            {semesters.map((semester) => (
+            {semesters.map((semester: any) => (
               <SelectItem key={semester.id} value={semester.id}>
                 {semester.name}
               </SelectItem>
@@ -105,7 +105,7 @@ const StudentsPage = () => {
             <SelectValue placeholder="Select Division" />
           </SelectTrigger>
           <SelectContent>
-            {divisions.map((division) => (
+            {divisions.map((division: any) => (
               <SelectItem key={division.id} value={division.id}>
                 {division.name}
               </SelectItem>
@@ -121,7 +121,7 @@ const StudentsPage = () => {
             <SelectValue placeholder="Select Batch" />
           </SelectTrigger>
           <SelectContent>
-            {batches.map((batch) => (
+            {batches.map((batch: any) => (
               <SelectItem key={batch.id} value={batch.id}>
                 {batch.name}
               </SelectItem>

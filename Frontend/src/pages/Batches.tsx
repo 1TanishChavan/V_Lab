@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import {
   Drawer,
   DrawerClose,
@@ -8,16 +8,18 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
-} from "@/components/ui/drawer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "../components/ui/drawer";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import useFacultyStore from "../store/facultyStore"; // Import the faculty store
 import { useBatchStore } from "../store/batchStore";
 
 const AddDivisionBatch: React.FC = () => {
-  const {
-    departments,
-    fetchDepartments,
-  } = useFacultyStore();
+  const { departments, fetchDepartments } = useFacultyStore();
 
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   const [semester, setSemester] = useState<string>("");
@@ -38,19 +40,18 @@ const AddDivisionBatch: React.FC = () => {
 
   const fetchAddedBatches = async () => {
     try {
-        await fetchBatches(); // This will now update the state
-        setError(null); // Reset error state if successful
+      await fetchBatches(); // This will now update the state
+      setError(null); // Reset error state if successful
     } catch (error) {
-        console.error('Failed to fetch added batches:', error);
-        setError('Failed to fetch added batches. Please try again later.'); // User-friendly error message
+      console.error("Failed to fetch added batches:", error);
+      setError("Failed to fetch added batches. Please try again later."); // User-friendly error message
     }
-};
-
+  };
 
   const handleAddBatch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const batchData = {
-      department_id: selectedDepartment,
+      department_id: parseInt(selectedDepartment, 10),
       semester: Number(semester), // Convert to number if needed
       division: division,
       batch: batch,
@@ -58,13 +59,13 @@ const AddDivisionBatch: React.FC = () => {
 
     try {
       await createBatch(batchData);
-      console.log('Batch created successfully');
+      console.log("Batch created successfully");
       setIsDrawerOpen(false);
       await fetchAddedBatches(); // Fetch updated batches
       resetForm(); // Reset the form fields
     } catch (error) {
-      console.error('Failed to add batch:', error);
-      setError('Failed to add batch. Please check your input and try again.');
+      console.error("Failed to add batch:", error);
+      setError("Failed to add batch. Please check your input and try again.");
     }
   };
 
@@ -120,7 +121,7 @@ const AddDivisionBatch: React.FC = () => {
                 required
               >
                 <option value="">Select Department</option>
-                {departments.map((dept) => (
+                {departments.map((dept: any) => (
                   <option key={dept.department_id} value={dept.department_id}>
                     {dept.name}
                   </option>

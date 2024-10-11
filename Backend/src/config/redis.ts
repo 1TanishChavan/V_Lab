@@ -2,7 +2,7 @@ import { createClient } from 'redis';
 
 // Redis client class for better error handling and reconnection
 class RedisClient {
-    private client;
+    private client: any;
     private isConnecting = false;
     private reconnectTimer: NodeJS.Timeout | null = null;
     private connectionAttempts = 0;
@@ -27,7 +27,7 @@ class RedisClient {
         });
 
         // Error handling
-        this.client.on('error', (err) => {
+        this.client.on('error', (err: any) => {
             console.error('Redis client error:', err.message);
             this.handleConnectionError();
         });

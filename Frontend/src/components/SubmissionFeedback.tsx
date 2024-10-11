@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 const SubmissionFeedback = ({ submissionStatus, testResults }) => {
   if (!submissionStatus) return null;

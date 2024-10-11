@@ -1,7 +1,24 @@
 import { create } from "zustand";
 import api from "../services/api";
 
-const useFacultyStore = create((set) => ({
+// interface Faculty {
+//   faculty_id: number;
+//   name: string;
+//   department: string;
+// }
+
+interface FacultyStoreState {
+  faculty: any[];
+  departments: string[];
+  isLoading: boolean;
+  error: string | null;
+  fetchDepartments: () => Promise<void>;
+  fetchFaculty: (department?: string) => Promise<void>;
+  addFaculty: (newFaculty: Partial<any>) => Promise<void>;
+  deleteFaculty: (facultyId: number) => Promise<void>;
+}
+
+const useFacultyStore = create<FacultyStoreState>((set) => ({
   faculty: [],
   departments: [],
   isLoading: false,

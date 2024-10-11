@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import api from '../services/api';
 
-interface Department {
+export interface Department {
     department_id: number;
     name: string;
 }
@@ -78,7 +78,7 @@ export const useDepartmentStore = create<DepartmentState>((set) => ({
 // export const useDepartmentStore = create<DepartmentState>((set) => ({
 //   departments: [],
 //   fetchDepartments: async () => {
-//     const response = await fetch('/api/departments'); 
+//     const response = await fetch('/api/departments');
 //     const data = await response.json();
 //     set({ departments: data });
 //   },

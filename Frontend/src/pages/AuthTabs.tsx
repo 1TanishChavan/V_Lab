@@ -3,15 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useDepartmentStore } from "../store/departmentStore";
 // import { useBatchStore } from "../store/batchStore";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
 import {
   Form,
   FormControl,
@@ -19,16 +24,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "../components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/hooks/use-toast";
+} from "../components/ui/select";
+import { Skeleton } from "../components/ui/skeleton";
+import { toast } from "../components/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -347,111 +352,113 @@ const AuthTabs: React.FC = () => {
                   />
                   {/* {registerForm.watch("role") === "Student" && (
                     <> */}
-                      <FormField
-                        control={registerForm.control}
-                        name="roll_id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Roll ID</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter your roll ID"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="semester"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Semester</FormLabel>
-                            <Select
-                              onValueChange={handleSemesterChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a semester" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {Array.from({ length: 8 }, (_, i) => (
-                                  <SelectItem
-                                    key={i}
-                                    value={(i + 1).toString()}
-                                  >
-                                    Semester {i + 1}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="division"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Division</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a division" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {/* Filter to get unique divisions */}
-                                {[...new Set(batches.map((b) => b.division))].map((division) => (
-                                  <SelectItem key={division} value={division}>
-                                    {division}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="batch_id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Batch</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a batch" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {/* Filter batches based on selected division */}
-                                {batches
-                                  .filter((b) => b.division === registerForm.watch("division"))
-                                  .map((b) => (
-                                    <SelectItem key={b.batch_id} value={b.batch_id.toString()}>
-                                      {b.batch}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    {/* </>
+                  <FormField
+                    control={registerForm.control}
+                    name="roll_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Roll ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your roll ID" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="semester"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Semester</FormLabel>
+                        <Select
+                          onValueChange={handleSemesterChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a semester" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Array.from({ length: 8 }, (_, i) => (
+                              <SelectItem key={i} value={(i + 1).toString()}>
+                                Semester {i + 1}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="division"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Division</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a division" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {/* Filter to get unique divisions */}
+                            {[...new Set(batches.map((b) => b.division))].map(
+                              (division) => (
+                                <SelectItem key={division} value={division}>
+                                  {division}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="batch_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Batch</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a batch" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {/* Filter batches based on selected division */}
+                            {batches
+                              .filter(
+                                (b) =>
+                                  b.division === registerForm.watch("division")
+                              )
+                              .map((b) => (
+                                <SelectItem
+                                  key={b.batch_id}
+                                  value={b.batch_id.toString()}
+                                >
+                                  {b.batch}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* </>
                   )} */}
                   <Button type="submit">Register</Button>
                 </form>

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuthStore } from "../store/authStore";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardFooter } from "../components/ui/card";
+import { Switch } from "../components/ui/switch";
 import { Slash } from "lucide-react";
 import {
   Breadcrumb,
@@ -13,7 +13,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
   BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
+} from "../components/ui/breadcrumb";
 import {
   Drawer,
   DrawerClose,
@@ -23,7 +23,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
+} from "../components/ui/drawer";
 import {
   Table,
   TableBody,
@@ -31,7 +31,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,8 +42,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
+} from "../components/ui/alert-dialog";
+import { Input } from "../components/ui/input";
 import { PlusIcon, Pencil, Trash2, Users, Lock } from "lucide-react";
 
 const PracticalList = () => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useToast } from "@/components/hooks/use-toast";
+import { useToast } from "../components/hooks/use-toast";
 import api from "../services/api";
 import {
   Table,
@@ -9,22 +9,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from "../components/ui/table";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-} from "@/components/ui/breadcrumb";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "../components/ui/breadcrumb";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../components/ui/select";
 
 const PracticalSubmissionPage = () => {
   const { practicalId } = useParams();

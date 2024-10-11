@@ -1,7 +1,30 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import api from '../services/api'; // Adjust the import based on your API setup
 
-const useStudentStore = create((set) => ({
+// interface Student {
+//   student_id: number;
+//   name: string;
+//   department: string;
+//   semester: string;
+//   division: string;
+//   batch: string;
+// }
+
+interface StudentStoreState {
+  students: any[];
+  departments: string[];
+  semesters: string[];
+  divisions: string[];
+  batches: string[];
+  isLoading: boolean;
+  fetchStudents: (filters?: Record<string, any>) => Promise<void>;
+  fetchDepartments: () => Promise<void>;
+  fetchSemesters: () => Promise<void>;
+  fetchDivisions: () => Promise<void>;
+  fetchBatches: () => Promise<void>;
+}
+
+const useStudentStore = create<StudentStoreState>((set) => ({
   students: [],
   departments: [],
   semesters: [],

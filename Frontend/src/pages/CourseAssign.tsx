@@ -13,8 +13,8 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
+} from "../components/ui/breadcrumb";
+import { Button } from "../components/ui/button";
 import {
   Table,
   TableBody,
@@ -22,21 +22,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "@/components/hooks/use-toast";
+} from "../components/ui/dropdown-menu";
+import { toast } from "../components/hooks/use-toast";
 
 interface Faculty {
   user_id: number;
@@ -202,9 +202,7 @@ const CourseAssign: React.FC = () => {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/courses">
-              Courses
-            </BreadcrumbLink>
+            <BreadcrumbLink href="/courses">Courses</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator>
             <Slash />

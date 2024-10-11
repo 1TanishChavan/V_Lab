@@ -2,20 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 // import { useCourseStore } from "../store/courseStore";
 import api from "../services/api";
-// import { Breadcrumb } from "@/components/ui/breadcrumb";
+// import { Breadcrumb } from "../components/ui/breadcrumb";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { MultiSelect } from "@/components/multi-select";
-import { useToast } from "@/components/hooks/use-toast";
+} from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Button } from "../components/ui/button";
+import { Checkbox } from "../components/ui/checkbox";
+import { MultiSelect } from "../components/multi-select";
+import { useToast } from "../components/hooks/use-toast";
 
 interface TestCase {
   prac_io_id?: number;

@@ -8,12 +8,15 @@ export default defineConfig({
   define: {
     'process.env': process.env
   },
+  build: {
+    sourcemap: false,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
-    port: 3000,
+    port: 5137,
   },
 })

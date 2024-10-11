@@ -3,15 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCourseStore, Course } from "../store/courseStore";
 import { useAuthStore } from "../store/authStore";
 import { useDepartmentStore } from "../store/departmentStore";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../components/ui/select";
 import {
   Drawer,
   DrawerClose,
@@ -20,7 +20,7 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer";
+} from "../components/ui/drawer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,35 +31,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "../components/ui/alert-dialog";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "../components/ui/card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
+} from "../components/ui/carousel";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "../components/ui/breadcrumb";
 import { PlusIcon, Pencil, Trash2, ChevronDown, Slash } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../components/ui/dropdown-menu";
 
 const Courses: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);

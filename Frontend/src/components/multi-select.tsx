@@ -11,14 +11,10 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Separator } from "./ui/separator";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -27,7 +23,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
+} from "./ui/command";
 
 /**
  * Variants for the multi-select component to handle different styles.

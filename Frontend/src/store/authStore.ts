@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthState>()(
             },
             register: async (userData) => {
                 try {
-                    const response = await api.post('/auth/register', userData);
+                    const response = await api.post('/auth/register', { ...userData, role: "Student" });
                     const { user, token } = response.data;
                     set({ user, token, isAuthenticated: true });
                     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;

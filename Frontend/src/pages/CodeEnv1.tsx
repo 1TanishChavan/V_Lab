@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Editor } from "@monaco-editor/react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { useAuthStore } from "@/store/authStore";
 import {
   Breadcrumb,
@@ -9,7 +9,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
   BreadcrumbLink,
-} from "@/components/ui/breadcrumb";
+} from "../components/ui/breadcrumb";
 import { Slash } from "lucide-react";
 import {
   Card,
@@ -17,8 +17,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useToast } from "@/components/hooks/use-toast";
+} from "../components/ui/card";
+import { useToast } from "../components/hooks/use-toast";
 import api from "../services/api";
 import {
   Select,
@@ -28,9 +28,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Toaster } from "@/components/ui/toaster";
+} from "../components/ui/select";
+import { Textarea } from "../components/ui/textarea";
+import { Toaster } from "../components/ui/toaster";
 import { Loader2 } from "lucide-react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -274,7 +274,7 @@ const CodingEnvironmentPage = () => {
           variant: status === "Accepted" ? "default" : "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.response?.status === 429) {
         toast({
           title: "Rate Limited",
@@ -319,7 +319,7 @@ const CodingEnvironmentPage = () => {
         time: response.data.time,
         memory: response.data.memory,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error.response?.status === 429) {
         toast({
           title: "Rate Limited",

@@ -1,16 +1,24 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Editor } from "@monaco-editor/react";
-import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useToast } from "@/components/hooks/use-toast";
+} from "../components/ui/card";
+import { useToast } from "../components/hooks/use-toast";
 import api from "../services/api";
 import { useAuthStore } from "../store/authStore";
 
@@ -118,14 +126,18 @@ const PracticalSubmissionDetailsPage = () => {
             </CardDescription>
           </div>
           <div className="flex items-center">
-            <Select
-              value={status}
-              onValueChange={setStatus}
-              options={[
-                { value: "Accepted", label: "Accepted" },
-                { value: "Rejected", label: "Rejected" },
-              ]}
-            />
+            <Select onValueChange={setStatus}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Status</SelectLabel>
+                  <SelectItem value="Accepted">Accepted</SelectItem>
+                  <SelectItem value="Rejected">Rejected</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             <input
               type="number"
               value={marks}
