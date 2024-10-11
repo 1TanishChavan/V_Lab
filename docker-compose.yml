@@ -84,6 +84,8 @@ services:
       - ./Frontend:/app
     ports:
       - "3000:3000"
+    env_file:
+      - ./Frontend/.env
     <<: *default-logging
     depends_on:
       - backend

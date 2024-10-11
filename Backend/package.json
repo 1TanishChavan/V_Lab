@@ -8,7 +8,7 @@
     "start": "ts-node src/index.ts",
     "dev": "tsnd --respawn -r tsconfig-paths/register --pretty --transpile-only ./src/index.ts",
     "build": "tsc && tsc-alias",
-    "start:dist": "node dist/index.js",
+    "start:dist": "node dist/src/index.js",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
