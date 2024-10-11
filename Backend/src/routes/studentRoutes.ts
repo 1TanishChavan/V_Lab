@@ -23,6 +23,6 @@ router.get('/:studentId/submissions', authMiddleware, roleMiddleware(['Faculty',
 router.get('/departments', authMiddleware, getDepartments);
 router.get('/semesters', authMiddleware, getSemesters);
 router.get('/divisions', authMiddleware, getDivisions);
-router.get('/batches', authMiddleware, getBatches);
+router.get('/batches/:depID/:sem', authMiddleware, getBatches);
 
 export default router;

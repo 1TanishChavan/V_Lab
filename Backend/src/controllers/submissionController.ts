@@ -295,7 +295,7 @@ export async function getPracticalWithSubmissionStatus(req: AuthenticatedRequest
                 or(
                     // Include practicals where:
                     // 1. No batch access record exists (lock is null)
-                    isNull(batch_practical_access.lock),
+                    // isNull(batch_practical_access.lock),
                     // 2. Batch access exists and practical is not locked
                     eq(batch_practical_access.lock, false),
                     // 3. Student has already made a submission (regardless of lock status)
