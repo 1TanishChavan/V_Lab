@@ -1,8 +1,8 @@
-import { db } from 'config/db';
-import { submissions, practicals, students, users, prac_io, prac_language, courses, batch_practical_access, batch, courses_faculty, departments } from '../models/schema';
+import { db } from '@/config/db';
+import { submissions, practicals, students, users, prac_io, prac_language, courses, batch_practical_access, batch, courses_faculty, departments } from '@/models/schema';
 import { eq, and } from 'drizzle-orm';
 
-import { AppError } from '../utils/errors';
+import { AppError } from '@/utils/errors';
 export async function getStudentSubmissions(studentId: number) {
     try {
         const studentSubmissions = await db

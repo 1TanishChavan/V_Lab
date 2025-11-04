@@ -1,7 +1,7 @@
-import { db } from 'config/db';
-import { users, faculty, courses_faculty, batch, departments } from 'models/schema';
+import { db } from '@/config/db';
+import { users, faculty, courses_faculty, batch, departments } from '@/models/schema';
 import { eq, and } from 'drizzle-orm';
-import { AppError } from '../utils/errors';
+import { AppError } from '@/utils/errors';
 
 // Create a new faculty member
 export async function createFaculty({

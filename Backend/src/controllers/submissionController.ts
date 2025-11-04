@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import * as submissionService from '../services/submissionService';
-import { AuthenticatedRequest } from '../middlewares/authMiddleware';
-import { AppError } from '../../src/utils/errors';
-import { practicals, prac_io, prac_language, programming_language, batch_practical_access, submissions } from '../models/schema';
+import * as submissionService from '@/services/submissionService';
+import { AuthenticatedRequest } from '@/middlewares/authMiddleware';
+import { AppError } from '@/src/utils/errors';
+import { practicals, prac_io, prac_language, programming_language, batch_practical_access, submissions } from '@/models/schema';
 import { eq, and, or, isNull, isNotNull } from 'drizzle-orm';
-import { db } from '../config/db';
+import { db } from '@/config/db';
 
 export async function runCode(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {

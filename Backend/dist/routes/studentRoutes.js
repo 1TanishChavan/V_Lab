@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const studentController_1 = require("../controllers/studentController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = express_1.default.Router();
+router.get('/department/:department', authMiddleware_1.authMiddleware, studentController_1.getStudentsByDepartment);
+router.get('/batch/:batchId', authMiddleware_1.authMiddleware, studentController_1.getStudentsByBatch);
+router.get('/roll/:rollId', authMiddleware_1.authMiddleware, studentController_1.getStudentByRollId);
+router.get('/department/:departmentId/semester/:semester', authMiddleware_1.authMiddleware, studentController_1.getStudentsByDepartmentAndSemester);
+router.get('/:studentId', authMiddleware_1.authMiddleware, (0, authMiddleware_1.roleMiddleware)(['Faculty', 'HOD']), studentController_1.getStudentSubmissions);
+router.get('/', authMiddleware_1.authMiddleware, (0, authMiddleware_1.roleMiddleware)(['Faculty', 'HOD', 'Admin']), studentController_1.getStudentsWithFilters);
+router.get('/:studentId/submissions', authMiddleware_1.authMiddleware, (0, authMiddleware_1.roleMiddleware)(['Faculty', 'HOD']), studentController_1.getStudentSubmissions);
+;
+router.get('/departments', authMiddleware_1.authMiddleware, studentController_1.getDepartments);
+router.get('/semesters', authMiddleware_1.authMiddleware, studentController_1.getSemesters);
+router.get('/divisions', authMiddleware_1.authMiddleware, studentController_1.getDivisions);
+router.get('/batches/:depID/:sem', authMiddleware_1.authMiddleware, studentController_1.getBatches);
+exports.default = router;

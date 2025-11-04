@@ -1,0 +1,594 @@
+import { db } from '@/config/db';
+import { submissions, practicals, students, users, prac_io, prac_language, courses, batch_practical_access, batch, courses_faculty } from '@/models/schema';
+import { eq, and, gt } from 'drizzle-orm';
+import { AppError } from '@/utils/errors';
+import axios from 'axios';
+import redis from '@/config/redis';
+// import { createClient } from 'redis';
+
+// const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
+const JUDGE0_API_URL = process.env.JUDGE0_API_URL || 'http://localhost:2358';
+const SUBMISSION_TIMEOUT = 30000; // 30 seconds
+const RESULTS_EXPIRY = 3600; // 1 hour in seconds
+const SUBMISSION_RATE_LIMIT = 3; // 30 seconds between submissions
+const RUN_RATE_LIMIT = 1; // 15 seconds between code runs
+const SUBMISSION_BATCH_SIZE = 5; // Process submissions in batches
+const BATCH_SIZE = 5; // Process submissions in batches
+const MAX_POLL_ATTEMPTS = 6; // Maximum number of polling attempts
+const POLL_INTERVAL = 5000; // 5 seconds between polls
+
+
+interface SubmissionResult {
+    token: string;
+    input: string;
+    expectedOutput: string;
+    status?: string;
+    actualOutput?: string;
+}
+
+interface SubmissionResult {
+    token: string;
+    input: string;
+    expectedOutput: string;
+    status?: string;
+    actualOutput?: string;
+}
+
+export async function getSubmissionResults(submissionId: string) {
+    const redisKey = `submission:${submissionId}`;
+    const submissionData = await redis.get(redisKey);
+
+    if (!submissionData) {
+        throw new AppError(404, 'Submission not found');
+    }
+
+    const data = JSON.parse(submissionData);
+    return {
+        status: data.status,
+        testResults: data.results,
+        allPassed: data.status === 'completed' &&
+            data.results.every((result: any) => result.status === 'Accepted')
+    };
+}
+
+export async function getPracticalWithSubmissionStatus(courseId: number, studentId: number) {
+    const result = await db.select({
+        practical_id: practicals.practical_id,
+        sr_no: practicals.sr_no,
+        practical_name: practicals.practical_name,
+        description: practicals.description,
+        pdf_url: practicals.pdf_url,
+        status: submissions.status,
+        marks: submissions.marks,
+        deadline: batch_practical_access.deadline,
+        lock: batch_practical_access.lock,
+    })
+        .from(practicals)
+        .leftJoin(submissions, and(
+            eq(submissions.practical_id, practicals.practical_id),
+            eq(submissions.student_id, studentId)
+        ))
+        .leftJoin(batch_practical_access, eq(batch_practical_access.practical_id, practicals.practical_id))
+        .leftJoin(students, eq(students.student_id, studentId))
+        .leftJoin(batch, eq(batch.batch_id, students.batch_id))
+        .where(and(
+            eq(practicals.course_id, courseId),
+            eq(batch_practical_access.batch_id, batch.batch_id)
+        ));
+
+    return result;
+}
+
+
+export async function getSubmissionsByPractical(practicalId: number, batchId: number, facultyId: number) {
+    try {
+        const submissionsList = await db
+            .select({
+                submission_id: submissions.submission_id,
+                roll_id: students.roll_id,
+                student_name: users.username,
+                code: submissions.code_submitted,
+                status: submissions.status,
+                submission_time: submissions.submission_time,
+                marks: submissions.marks,
+                batch: students.batch_id
+            })
+            .from(submissions)
+            .innerJoin(students, eq(submissions.student_id, students.student_id))
+            .innerJoin(users, eq(students.student_id, users.user_id))
+            .where(and(
+                eq(submissions.practical_id, practicalId),
+                eq(students.batch_id, batchId)
+            ));
+
+        return submissionsList;
+    } catch (error) {
+        console.error('Error in getSubmissionsByPractical:', error);
+        throw new AppError(500, 'Failed to fetch submissions for practical');
+    }
+}
+
+export async function getSubmissionById(submissionId: number) {
+    try {
+        const submission = await db
+            .select({
+                submission_id: submissions.submission_id,
+                practical_sr_no: practicals.sr_no,
+                practical_name: practicals.practical_name,
+                course_name: courses.course_name,
+                prac_io: prac_io.input,
+                submission_status: submissions.status,
+                code_submitted: submissions.code_submitted,
+                marks: submissions.marks,
+                student_name: users.username,
+                roll_id: students.roll_id,
+                submission_time: submissions.submission_time,
+                batch_name: batch.batch
+            })
+            .from(submissions)
+            .innerJoin(practicals, eq(submissions.practical_id, practicals.practical_id))
+            .innerJoin(prac_io, eq(practicals.practical_id, prac_io.practical_id))
+            .innerJoin(courses, eq(practicals.course_id, courses.course_id))
+            .innerJoin(students, eq(submissions.student_id, students.student_id))
+            .innerJoin(users, eq(students.student_id, users.user_id))
+            .innerJoin(batch, eq(students.batch_id, batch.batch_id))
+            .where(eq(submissions.submission_id, submissionId))
+            .limit(1);
+
+        return submission[0];
+    } catch (error) {
+        console.error('Error in getSubmissionById:', error);
+        throw new AppError(500, 'Failed to fetch submission');
+    }
+}
+
+export async function updateSubmission(submissionId: number, updateData: { status: string; marks: number }) {
+    try {
+        await db.update(submissions)
+            .set({
+                // @ts-ignore
+                status: updateData.status,
+                marks: updateData.marks,
+            })
+            .where(eq(submissions.submission_id, submissionId));
+
+        // Fetch the updated submission to return
+        const updatedSubmission = await getSubmissionById(submissionId);
+        return updatedSubmission;
+    } catch (error) {
+        console.error('Error in updateSubmission:', error);
+        throw new AppError(500, 'Failed to update submission');
+    }
+}
+
+export async function getFacultyBatches(facultyId: number) {
+    try {
+        const facultyBatches = await db
+            .select({
+                batch_id: batch.batch_id,
+                division: batch.division,
+                batch_name: batch.batch
+            })
+            .from(batch)
+            .innerJoin(courses_faculty, eq(batch.batch_id, courses_faculty.batch_id))
+            .where(eq(courses_faculty.faculty_id, facultyId));
+
+        return facultyBatches;
+    } catch (error) {
+        console.error('Error in getFacultyBatches:', error);
+        throw new AppError(500, 'Failed to fetch faculty batches');
+    }
+}
+
+export async function getStudentSubmissions(studentId: number) {
+    try {
+        const studentSubmissions = await db
+            .select({
+                submission_id: submissions.submission_id,
+                practical_id: submissions.practical_id,
+                practical_sr_no: practicals.sr_no,
+                practical_name: practicals.practical_name,
+                course_name: courses.course_name,
+                submission_time: submissions.submission_time,
+                status: submissions.status,
+                marks: submissions.marks,
+            })
+            .from(submissions)
+            .innerJoin(practicals, eq(submissions.practical_id, practicals.practical_id))
+            .innerJoin(courses, eq(practicals.course_id, courses.course_id))
+            .where(eq(submissions.student_id, studentId));
+
+        return studentSubmissions;
+    } catch (error) {
+        console.error('Error in getStudentSubmissions:', error);
+        throw new AppError(500, 'Failed to fetch student submissions');
+    }
+}
+
+export async function getStudentDetails(studentId: number) {
+    try {
+        const studentDetails = await db
+            .select({
+                student_id: students.student_id,
+                name: users.username,
+                email: users.email,
+                roll_id: students.roll_id,
+                semester: batch.semester,
+                division: batch.division,
+                batch: batch.batch,
+            })
+            .from(students)
+            .innerJoin(users, eq(students.student_id, users.user_id))
+            .innerJoin(batch, eq(students.batch_id, batch.batch_id))
+            .where(eq(students.student_id, studentId))
+            .limit(1);
+
+        if (studentDetails.length === 0) {
+            throw new AppError(404, 'Student not found');
+        }
+
+        return studentDetails[0];
+    } catch (error) {
+        console.error('Error in getStudentDetails:', error);
+        throw error instanceof AppError ? error : new AppError(500, 'Failed to fetch student details');
+    }
+}
+
+export async function updateStudent(studentId: number, updateData: Partial<typeof students.$inferSelect>) {
+    try {
+        await db.update(students)
+            .set(updateData)
+            .where(eq(students.student_id, studentId));
+
+        // Fetch and return the updated student details
+        const updatedStudent = await getStudentDetails(studentId);
+        return updatedStudent;
+    } catch (error) {
+        console.error('Error in updateStudent:', error);
+        throw new AppError(500, 'Failed to update student');
+    }
+}
+
+export async function deleteStudent(studentId: number) {
+    try {
+        await db.delete(students)
+            .where(eq(students.student_id, studentId));
+    } catch (error) {
+        console.error('Error in deleteStudent:', error);
+        throw new AppError(500, 'Failed to delete student');
+    }
+}
+
+
+export async function getRunResult(token: string) {
+    try {
+        const response = await axios.get(`${JUDGE0_API_URL}/submissions/${token}?fields=status,stdout,stderr,time,memory`);
+        return response.data;
+    } catch (error) {
+        console.error('Error in getRunResult:', error);
+        throw new AppError(500, 'Failed to get run result');
+    }
+}
+
+export async function getSubmissionStatus_(submissionId: string) {
+    try {
+        const submissionData = await redis.get(`submission:${submissionId}`);
+        if (!submissionData) {
+            throw new AppError(404, 'Submission not found');
+        }
+
+        const data = JSON.parse(submissionData);
+        const completed = data.status === 'completed';
+
+        return {
+            status: completed ? data.results.every((r: any) => r.status === 'Accepted') ? 'Accepted' : 'Rejected' : 'Processing',
+            completed
+        };
+    } catch (error) {
+        console.error('Error in getSubmissionStatus:', error);
+        throw new AppError(500, 'Failed to get submission status');
+    }
+}
+
+async function storeSubmissionData(submissionData: any, results: SubmissionResult[]) {
+    const [result] = await db.insert(submissions).values({
+        practical_id: submissionData.practicalId,
+        student_id: submissionData.studentId,
+        code_submitted: submissionData.code,
+        status: 'Pending',
+        submission_time: new Date()
+    });
+
+    // In MySQL, the insertId is returned directly
+    const submissionId = result.insertId;
+
+    // Store additional data in Redis
+    const redisKey = `submission:${submissionId}`;
+    await redis.set(redisKey, JSON.stringify({
+        results,
+        status: 'processing',
+        practicalId: submissionData.practicalId,
+        studentId: submissionData.studentId,
+        code: submissionData.code
+    }), { EX: RESULTS_EXPIRY });
+
+    return submissionId;
+}
+
+async function checkExistingSubmission(submissionData: any) {
+    return db
+        .select()
+        .from(submissions)
+        .where(
+            and(
+                eq(submissions.practical_id, submissionData.practicalId),
+                eq(submissions.student_id, submissionData.studentId),
+                eq(submissions.status, 'Accepted')
+            )
+        )
+        .limit(1);
+}
+
+async function fetchAllTestCases(practicalId: number) {
+    return db
+        .select()
+        .from(prac_io)
+        .where(eq(prac_io.practical_id, practicalId));
+}
+
+async function saveSubmissionToDatabase(submissionData: any) {
+    await db.insert(submissions).values({
+        practical_id: submissionData.practicalId,
+        student_id: submissionData.studentId,
+        code_submitted: submissionData.code,
+        submission_time: new Date(),
+        status: 'Accepted',
+        marks: 15 // Assuming a fixed mark for accepted submissions
+    });
+}
+
+async function checkRateLimit(userId: number, action: 'submit' | 'run'): Promise<boolean> {
+    const key = `ratelimit:${action}:${userId}`;
+    const limit = action === 'submit' ? SUBMISSION_RATE_LIMIT : RUN_RATE_LIMIT;
+
+    try {
+        const lastAction = await redis.get(key);
+        if (lastAction) {
+            return false;
+        }
+
+        await redis.set(key, Date.now().toString(), { EX: limit });
+        return true;
+    } catch (error) {
+        console.error(`Rate limit check failed for ${action}:`, error);
+        return false;
+    }
+}
+
+export async function runCode(runData: { code: string; language: string; input: string; userId: number }) {
+    const canRun = await checkRateLimit(runData.userId, 'run');
+    if (!canRun) {
+        throw new AppError(429, `Please wait ${RUN_RATE_LIMIT} seconds before running code again`);
+    }
+
+    try {
+        const response = await axios.post(`${JUDGE0_API_URL}/submissions`, {
+            source_code: runData.code,
+            language_id: parseInt(runData.language, 10), // Ensure language_id is an integer
+            stdin: runData.input,
+            redirect_stderr_to_stdout: true
+        });
+
+        const { token } = response.data;
+        const result = await waitForResult(token);
+        return {
+            output: result.stdout || result.stderr || 'No output',
+            status: result.status.description,
+            time: result.time,
+            memory: result.memory
+        };
+    } catch (error: any) {
+        console.error('Error in runCode:', error);
+        if (error.response && error.response.status === 422) {
+            console.error('Judge0 API Error:', error.response.data);
+            throw new AppError(422, 'Invalid request payload to Judge0 API');
+        }
+        throw new AppError(500, 'Failed to run code');
+    }
+}
+
+async function waitForResult(token: string, timeout = SUBMISSION_TIMEOUT) {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+        try {
+            const response = await axios.get(`${JUDGE0_API_URL}/submissions/${token}`);
+            if (response.data.status.id !== 1 && response.data.status.id !== 2) { // Not In Queue or Processing
+                return response.data;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before next attempt
+        } catch (error) {
+            console.error('Error fetching result:', error);
+            throw new AppError(500, 'Failed to get result');
+        }
+    }
+
+    throw new AppError(504, 'Submission processing timeout');
+}
+
+async function createBatchSubmissions(code: string, language: string, testCases: any[]): Promise<SubmissionResult[]> {
+    const results: SubmissionResult[] = [];
+
+    // Process test cases in batches
+    for (let i = 0; i < testCases.length; i += BATCH_SIZE) {
+        const batchTestCases = testCases.slice(i, i + BATCH_SIZE);
+        const submissions = batchTestCases.map(testCase => ({
+            source_code: code,
+            language_id: language,
+            stdin: testCase.input,
+            expected_output: testCase.output,
+            redirect_stderr_to_stdout: true
+        }));
+
+        const response = await axios.post(`${JUDGE0_API_URL}/submissions/batch`, { submissions });
+
+        results.push(...response.data.map((result: any, index: number) => ({
+            token: result.token,
+            input: batchTestCases[index].input,
+            expectedOutput: batchTestCases[index].output
+        })));
+    }
+
+    return results;
+}
+
+async function pollBatchResults(tokens: string[]): Promise<any[]> {
+    let attempts = 0;
+    const results: any[] = [];
+
+    while (attempts < MAX_POLL_ATTEMPTS) {
+        const batchTokens = tokens.join(',');
+        const response = await axios.get(`${JUDGE0_API_URL}/submissions/batch`, {
+            params: {
+                tokens: batchTokens,
+                fields: 'token,status,stdout,stderr'
+            }
+        });
+
+        const allCompleted = response.data.submissions.every((sub: any) =>
+            sub.status.id !== 1 && sub.status.id !== 2); // Not In Queue or Processing
+
+        if (allCompleted) {
+            return response.data.submissions;
+        }
+
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+    }
+
+    throw new AppError(504, 'Submission processing timeout');
+}
+
+export async function submitCode(submissionData: {
+    code: string;
+    language: string;
+    practicalId: number;
+    studentId: number;
+}) {
+    // Fetch all test cases
+    const testCases = await db
+        .select()
+        .from(prac_io)
+        .where(eq(prac_io.practical_id, submissionData.practicalId));
+
+    // Create batch submissions
+    const batchResults = await createBatchSubmissions(
+        submissionData.code,
+        submissionData.language,
+        testCases
+    );
+
+    // Store initial submission
+    const [result] = await db.insert(submissions).values({
+        practical_id: submissionData.practicalId,
+        student_id: submissionData.studentId,
+        code_submitted: submissionData.code,
+        status: 'Pending',
+        submission_time: new Date()
+    });
+
+    const submissionId = result.insertId;
+
+    // Start processing results asynchronously
+    processSubmissionResults(submissionId, batchResults).catch(console.error);
+
+    return { submissionId };
+}
+
+async function processSubmissionResults(submissionId: number, results: SubmissionResult[]) {
+    try {
+        const tokens = results.map(r => r.token);
+        const batchResults = await pollBatchResults(tokens);
+        console.log(batchResults)
+        const allPassed = batchResults.every(result => result.status.id === 3); // 3 = Accepted
+        const status = allPassed ? 'Accepted' : 'Rejected';
+
+        // Update database
+        await db.update(submissions)
+            .set({
+                status,
+                marks: allPassed ? 15 : 0
+            })
+            .where(eq(submissions.submission_id, submissionId));
+
+        // Store results in Redis (without test case details)
+        await redis.set(`submission:${submissionId}`, JSON.stringify({
+            status,
+            completed: true
+        }), { EX: RESULTS_EXPIRY });
+
+    } catch (error) {
+        console.error('Error processing submission results:', error);
+        await db.update(submissions)
+            .set({ status: 'Rejected' })
+            .where(eq(submissions.submission_id, submissionId));
+    }
+}
+
+export async function getSubmissionStatus(submissionId: string) {
+    const data = await redis.get(`submission:${submissionId}`);
+    console.log(data);
+    if (!data) {
+        const [submission] = await db
+            .select()
+            .from(submissions)
+            .where(eq(submissions.submission_id, parseInt(submissionId)))
+            .limit(1);
+
+        if (!submission) {
+            throw new AppError(404, 'Submission not found');
+        }
+
+        return {
+            status: submission.status,
+            completed: submission.status !== 'Pending'
+        };
+    }
+
+    return JSON.parse(data);
+}
+
+export async function updateSubmissionCode(submissionData: {
+    submissionId: number;
+    code: string;
+    language: string;
+    practicalId: number;
+    studentId: number;
+}) {
+    // Fetch all test cases
+    const testCases = await db
+        .select()
+        .from(prac_io)
+        .where(eq(prac_io.practical_id, submissionData.practicalId));
+
+    // Create batch submissions
+    const batchResults = await createBatchSubmissions(
+        submissionData.code,
+        submissionData.language,
+        testCases
+    );
+
+    // Update existing submission
+    await db.update(submissions)
+        .set({
+            code_submitted: submissionData.code,
+            status: 'Pending',
+            submission_time: new Date()
+        })
+        .where(eq(submissions.submission_id, submissionData.submissionId));
+
+    // Process results asynchronously
+    processSubmissionResults(submissionData.submissionId, batchResults).catch(console.error);
+
+    return { submissionId: submissionData.submissionId };
+}

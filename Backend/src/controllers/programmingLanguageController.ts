@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import * as programmingLanguageService from 'services/programmingLanguageService';
-import { AppError } from '../../src/utils/errors';
-import { AuthenticatedRequest } from '../../src/middlewares/authMiddleware';
+import * as programmingLanguageService from '@/services/programmingLanguageService';
+import { AppError } from '@/src/utils/errors';
+import { AuthenticatedRequest } from '@/src/middlewares/authMiddleware';
 
 export async function getProgrammingLanguages(req: Request, res: Response, next: NextFunction) {
     try {

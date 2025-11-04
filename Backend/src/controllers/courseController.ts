@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import * as courseService from '../services/courseService';
-import { AppError } from '../../src/utils/errors';
-import { AuthenticatedRequest } from '../../src/middlewares/authMiddleware';
+import * as courseService from '@/services/courseService';
+import { AppError } from '@/src/utils/errors';
+import { AuthenticatedRequest } from '@/src/middlewares/authMiddleware';
 
 export async function getCourses(req: Request, res: Response, next: NextFunction) {
     try {

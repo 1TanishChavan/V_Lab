@@ -1,6 +1,6 @@
 import express from 'express';
-import { getBatches, createBatch, updateBatch, deleteBatch, getBatchesByDepartmentAndSemester } from 'controllers/batchController';
-import { authMiddleware, roleMiddleware } from 'middlewares/authMiddleware';
+import { getBatches, createBatch, updateBatch, deleteBatch, getBatchesByDepartmentAndSemester } from '@/controllers/batchController';
+import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
 
 const router = express.Router();
 

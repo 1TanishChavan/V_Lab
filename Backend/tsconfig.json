@@ -8,25 +8,25 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "src/*": ["./src/*"],
-      "config/*":["./src/config/*"],
-      "controllers/*":["./src/controllers/*"],
-      "models/*":["./src/models/*"],
-      "middlewares/*":["./src/middlewares/*"],
-      "routes/*":["./src/routes/*"],
-      "services/*":["./src/services/*"],
-      "tests/*":["./src/tests/*"],
-      "utils/*":["./src/utils/*"],
-      "validations/*":["./src/validations/*"],
+      "@/src/*": ["./src/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/controllers/*": ["./src/controllers/*"],
+      "@/models/*": ["./src/models/*"],
+      "@/middlewares/*": ["./src/middlewares/*"],
+      "@/routes/*": ["./src/routes/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/tests/*": ["./src/tests/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/validations/*": ["./src/validations/*"]
     },
     "types": ["@sinclair/typebox"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "drizzle.config.ts"],
+  "exclude": ["node_modules", "drizzle.config.ts"]
   // "ts-node": {
   //   "esm": true
   // }

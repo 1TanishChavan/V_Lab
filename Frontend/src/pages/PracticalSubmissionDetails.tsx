@@ -24,6 +24,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbList,
 } from "../components/ui/breadcrumb";
 
 const PracticalSubmissionDetails = () => {
@@ -78,24 +79,31 @@ const PracticalSubmissionDetails = () => {
 
   return (
     <div className="container mx-auto mt-4 p-4">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/">Home</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink href="/courses">Courses</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink href={`/practical-submission/${practicalId}`}>
-            Practical Submissions
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink>Submission Details</BreadcrumbLink>
-        </BreadcrumbItem>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href={`/courses`}>
+              <BreadcrumbLink href="/courses">Courses</BreadcrumbLink>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href={`/practical-submission/${practicalId}`}>
+              Practical Submissions
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            {/* <BreadcrumbLink>Practical {srNo}</BreadcrumbLink> */}
+            <BreadcrumbLink>
+              Practical {submission.practical_sr_no}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
       </Breadcrumb>
 
       <Card className="w-full max-w-3xl mx-auto">

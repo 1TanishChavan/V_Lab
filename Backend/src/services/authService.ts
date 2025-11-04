@@ -1,10 +1,10 @@
-import { db } from 'config/db';
-import { users, students, faculty, batch } from 'models/schema';
-import { generateToken } from 'utils/jwtUtils';
+import { db } from '@/config/db';
+import { users, students, faculty, batch } from '@/models/schema';
+import { generateToken } from '@/utils/jwtUtils';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
-import { AppError } from 'utils/errors';
-import logger from '../utils/logger';
+import { AppError } from '@/utils/errors';
+// import logger from '../utils/logger';
 
 // export async function registerUser(userData: any) {
 //     logger.info('Attempting to register new user', { email: userData.email, role: userData.role });
@@ -40,7 +40,7 @@ import logger from '../utils/logger';
 // }
 
 export async function registerUser(userData: any) {
-    logger.info('Attempting to register new user', { email: userData.email, role: userData.role });
+    // logger.info('Attempting to register new user', { email: userData.email, role: userData.role });
 
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(userData.password, 10);
@@ -96,7 +96,7 @@ export async function registerUser(userData: any) {
     const token = generateToken({ id: result[0].insertId, role: userData.role });
 
     // Log success and return the combined user and token
-    logger.info('User registered successfully', { userId: result[0].insertId, role: userData.role });
+    // logger.info('User registered successfully', { userId: result[0].insertId, role: userData.role });
 
     return {
         token,
@@ -105,19 +105,19 @@ export async function registerUser(userData: any) {
 }
 
 export async function loginUser(loginData: { email: string; password: string }) {
-    logger.info('User login attempt', { email: loginData.email });
+    // logger.info('User login attempt', { email: loginData.email });
 
     const user = await db.select().from(users).where(eq(users.email, loginData.email)).limit(1);
 
     if (user.length === 0) {
-        logger.warn('Login failed: User not found', { email: loginData.email });
+        // logger.warn('Login failed: User not found', { email: loginData.email });
         throw new AppError(404, 'User not found');
     }
 
     const isPasswordValid = await bcrypt.compare(loginData.password, user[0].password);
 
     if (!isPasswordValid) {
-        logger.warn('Login failed: Invalid password', { email: loginData.email });
+        // logger.warn('Login failed: Invalid password', { email: loginData.email });
         throw new AppError(401, 'Invalid credentials');
     }
 
@@ -151,6 +151,6 @@ export async function loginUser(loginData: { email: string; password: string }) 
         // }
     }
 
-    logger.info('User logged in successfully', { userId: user[0].user_id, role: user[0].role });
+    // logger.info('User logged in successfully', { userId: user[0].user_id, role: user[0].role });
     return { token, user: { ...user[0], ...additionalDetails } };
 }

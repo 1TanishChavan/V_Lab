@@ -114,7 +114,7 @@ CREATE TABLE `users` (
 );
 
 ALTER TABLE `batch` ADD CONSTRAINT `batch_department_id_departments_department_id_fk` FOREIGN KEY (`department_id`) REFERENCES `departments`(`department_id`) ON DELETE no action ON UPDATE no action;
-ALTER TABLE `batch_practical_access` ADD CONSTRAINT `batch_practical_access_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE no action ON UPDATE no action;
+ALTER TABLE `batch_practical_access` ADD CONSTRAINT `batch_practical_access_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
 ALTER TABLE `batch_practical_access` ADD CONSTRAINT `batch_practical_access_batch_id_batch_batch_id_fk` FOREIGN KEY (`batch_id`) REFERENCES `batch`(`batch_id`) ON DELETE no action ON UPDATE no action;
 ALTER TABLE `courses` ADD CONSTRAINT `courses_department_id_departments_department_id_fk` FOREIGN KEY (`department_id`) REFERENCES `departments`(`department_id`) ON DELETE no action ON UPDATE no action;
 ALTER TABLE `courses_faculty` ADD CONSTRAINT `courses_faculty_course_id_courses_course_id_fk` FOREIGN KEY (`course_id`) REFERENCES `courses`(`course_id`) ON DELETE no action ON UPDATE no action;
@@ -122,15 +122,16 @@ ALTER TABLE `courses_faculty` ADD CONSTRAINT `courses_faculty_faculty_id_faculty
 ALTER TABLE `courses_faculty` ADD CONSTRAINT `courses_faculty_batch_id_batch_batch_id_fk` FOREIGN KEY (`batch_id`) REFERENCES `batch`(`batch_id`) ON DELETE no action ON UPDATE no action;
 ALTER TABLE `faculty` ADD CONSTRAINT `faculty_faculty_id_users_user_id_fk` FOREIGN KEY (`faculty_id`) REFERENCES `users`(`user_id`) ON DELETE no action ON UPDATE no action;
 ALTER TABLE `faculty` ADD CONSTRAINT `faculty_department_id_departments_department_id_fk` FOREIGN KEY (`department_id`) REFERENCES `departments`(`department_id`) ON DELETE no action ON UPDATE no action;
-ALTER TABLE `prac_io` ADD CONSTRAINT `prac_io_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE no action ON UPDATE no action;
-ALTER TABLE `prac_language` ADD CONSTRAINT `prac_language_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE no action ON UPDATE no action;
+ALTER TABLE `prac_io` ADD CONSTRAINT `prac_io_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
+ALTER TABLE `prac_language` ADD CONSTRAINT `prac_language_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
 ALTER TABLE `prac_language` ADD CONSTRAINT `prac_language_programming_language_id_fk` FOREIGN KEY (`programming_language_id`) REFERENCES `programming_language`(`programming_language`) ON DELETE no action ON UPDATE no action;
-ALTER TABLE `practicals` ADD CONSTRAINT `practicals_course_id_courses_course_id_fk` FOREIGN KEY (`course_id`) REFERENCES `courses`(`course_id`) ON DELETE no action ON UPDATE no action;
+ALTER TABLE `practicals` ADD CONSTRAINT `practicals_course_id_courses_course_id_fk` FOREIGN KEY (`course_id`) REFERENCES `courses`(`course_id`) ON DELETE cascade ON UPDATE no action;
 ALTER TABLE `reports` ADD CONSTRAINT `reports_student_id_users_user_id_fk` FOREIGN KEY (`student_id`) REFERENCES `users`(`user_id`) ON DELETE no action ON UPDATE no action;
 ALTER TABLE `students` ADD CONSTRAINT `students_student_id_users_user_id_fk` FOREIGN KEY (`student_id`) REFERENCES `users`(`user_id`) ON DELETE no action ON UPDATE no action;
 ALTER TABLE `students` ADD CONSTRAINT `students_batch_id_batch_batch_id_fk` FOREIGN KEY (`batch_id`) REFERENCES `batch`(`batch_id`) ON DELETE no action ON UPDATE no action;
-ALTER TABLE `submissions` ADD CONSTRAINT `submissions_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE no action ON UPDATE no action;
+ALTER TABLE `submissions` ADD CONSTRAINT `submissions_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
 ALTER TABLE `submissions` ADD CONSTRAINT `submissions_student_id_students_student_id_fk` FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE no action ON UPDATE no action;
+
 CREATE INDEX `department_id_idx` ON `batch` (`department_id`);
 CREATE INDEX `semester_idx` ON `batch` (`semester`);
 CREATE INDEX `division_idx` ON `batch` (`division`);
@@ -160,3 +161,20 @@ CREATE INDEX `student_idx` ON `submissions` (`student_id`);
 CREATE INDEX `username_idx` ON `users` (`username`);
 CREATE INDEX `email_idx` ON `users` (`email`);
 CREATE INDEX `role_idx` ON `users` (`role`);
+
+-- ALTER TABLE `batch_practical_access` DROP FOREIGN KEY `batch_practical_access_practical_id_practicals_practical_id_fk`;
+
+-- ALTER TABLE `prac_io` DROP FOREIGN KEY `prac_io_practical_id_practicals_practical_id_fk`;
+
+-- ALTER TABLE `prac_language` DROP FOREIGN KEY `prac_language_practical_id_practicals_practical_id_fk`;
+
+-- ALTER TABLE `practicals` DROP FOREIGN KEY `practicals_course_id_courses_course_id_fk`;
+
+-- ALTER TABLE `submissions` DROP FOREIGN KEY `submissions_practical_id_practicals_practical_id_fk`;
+
+ALTER TABLE `batch_practical_access` ADD CONSTRAINT `batch_practical_access_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
+ALTER TABLE `prac_io` ADD CONSTRAINT `prac_io_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
+ALTER TABLE `prac_language` ADD CONSTRAINT `prac_language_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
+ALTER TABLE `practicals` ADD CONSTRAINT `practicals_course_id_courses_course_id_fk` FOREIGN KEY (`course_id`) REFERENCES `courses`(`course_id`) ON DELETE cascade ON UPDATE no action;
+ALTER TABLE `submissions` ADD CONSTRAINT `submissions_practical_id_practicals_practical_id_fk` FOREIGN KEY (`practical_id`) REFERENCES `practicals`(`practical_id`) ON DELETE cascade ON UPDATE no action;
+-- ALTER TABLE `users` DROP COLUMN `pdf_url`;

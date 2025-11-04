@@ -6,10 +6,10 @@ import {
     deletePractical,
     getPracticalByCourse,
     getPracticalById, getPracticalLanguages
-} from '../controllers/practicalController';
-import { getPracticalWithSubmissionStatus } from 'src/controllers/submissionController';
+} from '@/controllers/practicalController';
+import { getPracticalWithSubmissionStatus } from '@/src/controllers/submissionController';
 
-import { authMiddleware, roleMiddleware } from '../middlewares/authMiddleware';
+import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
 
 const router = express.Router();
 

@@ -60,36 +60,5 @@ services:
     <<: *default-logging
     restart: always
 
-  backend:
-    build:
-      context: ./Backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./Backend:/app
-    ports:
-      - "5000:5000"
-    env_file:
-      - ./Backend/.env
-    <<: *default-logging
-    depends_on:
-      - db
-      - redis2
-    restart: always
-
-  frontend:
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./Frontend:/app
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./Frontend/.env
-    <<: *default-logging
-    depends_on:
-      - backend
-    restart: always
-
 volumes:
   data:

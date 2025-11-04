@@ -1,5 +1,5 @@
 # Frontend Dockerfile
-FROM node:20.18.0-alpine AS build
+FROM node:alpine AS build
 
 # Set the working directory
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm cis
 
 # Copy the rest of the application code
 COPY . .
@@ -17,13 +17,17 @@ COPY . .
 RUN npm run build
 
 # Serve the application
-FROM nginx:alpine
+FROM nginx:alpine AS production
+
+RUN rm -rf /usr/share/nginx/html/*
 
 # Copy the built assets from the build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
+COPY nginx.conf /etc/nginx/nginx.conf
+
 # Expose the frontend port
-EXPOSE 3000
+EXPOSE 80
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,33 @@
+x-logging: &default-logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100M
+services:
+  backend:
+    build:
+      context: ./../Backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./../Backend:/app
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./../Backend/.env
+    <<: *default-logging
+    restart: always
+
+  frontend:
+    build:
+      context: ./../Frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./../Frontend:/app
+    ports:
+      - "5173:80"
+    env_file:
+      - ./../Frontend/.env
+    <<: *default-logging
+    # depends_on:
+    # - backend
+    restart: always

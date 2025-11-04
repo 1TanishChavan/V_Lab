@@ -16,7 +16,7 @@ class RedisClient {
 
     private initializeClient() {
         this.client = createClient({
-            url: `redis://:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+            url: `${process.env.REDIS_URL}`,
             socket: {
                 connectTimeout: 10000,
                 keepAlive: 0, // Disable keepAlive to prevent ECONNRESET
@@ -101,6 +101,21 @@ class RedisClient {
             await this.client.set(key, value, options);
         } catch (error) {
             console.error('Redis SET operation failed:', error);
+            throw error;
+        }
+    }
+
+    public async del(key: string): Promise<number> {
+        if (!this.isReady()) {
+            console.error('Redis not ready, skipping DEL');
+            throw new Error('Redis client is not connected');
+        }
+        try {
+            // The .del() command returns the number of keys that were deleted.
+            const keysDeleted = await this.client.del(key);
+            return keysDeleted;
+        } catch (error) {
+            console.error('Redis DEL operation failed:', error);
             throw error;
         }
     }

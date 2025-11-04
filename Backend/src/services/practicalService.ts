@@ -1,7 +1,7 @@
-import { db } from '../config/db';
-import { practicals, prac_io, prac_language, programming_language, departments, courses, courses_faculty } from '../models/schema';
+import { db } from '@/config/db';
+import { practicals, prac_io, prac_language, programming_language, departments, courses, courses_faculty } from '@/models/schema';
 import { eq, and } from 'drizzle-orm';
-import { AppError } from '../utils/errors';
+import { AppError } from '@/utils/errors';
 
 
 // export async function createPractical(practicalData: any) {

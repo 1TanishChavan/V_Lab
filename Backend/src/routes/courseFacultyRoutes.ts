@@ -1,6 +1,6 @@
 import express from 'express';
-import { assignCourseToFaculty, updateCourseFacultyAssignment, deleteCourseFacultyAssignment, getFacultyByCourse, getCoursesByFaculty } from 'controllers/courseFacultyController';
-import { authMiddleware, roleMiddleware } from 'middlewares/authMiddleware';
+import { assignCourseToFaculty, updateCourseFacultyAssignment, deleteCourseFacultyAssignment, getFacultyByCourse, getCoursesByFaculty } from '@/controllers/courseFacultyController';
+import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
 
 const router = express.Router();
 

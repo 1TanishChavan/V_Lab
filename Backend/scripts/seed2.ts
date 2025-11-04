@@ -11,26 +11,26 @@ dotenv.config();
 async function seed(): Promise<void> {
   try {
     // Disable foreign key checks
-    await db.execute(sql`SET FOREIGN_KEY_CHECKS = 0`);
+    // await db.execute(sql`SET FOREIGN_KEY_CHECKS = 0`);
 
-    // Truncate tables
-    await db.execute(sql`TRUNCATE TABLE batch`);
-    await db.execute(sql`TRUNCATE TABLE batch_practical_access`);
-    await db.execute(sql`TRUNCATE TABLE courses`);
-    await db.execute(sql`TRUNCATE TABLE courses_faculty`);
-    await db.execute(sql`TRUNCATE TABLE departments`);
-    await db.execute(sql`TRUNCATE TABLE faculty`);
-    await db.execute(sql`TRUNCATE TABLE practicals`);
-    await db.execute(sql`TRUNCATE TABLE prac_io`);
-    await db.execute(sql`TRUNCATE TABLE prac_language`);
-    await db.execute(sql`TRUNCATE TABLE programming_language`);
-    await db.execute(sql`TRUNCATE TABLE reports`);
-    await db.execute(sql`TRUNCATE TABLE students`);
-    await db.execute(sql`TRUNCATE TABLE submissions`);
-    await db.execute(sql`TRUNCATE TABLE users`);
+    // // Truncate tables
+    // await db.execute(sql`TRUNCATE TABLE batch`);
+    // await db.execute(sql`TRUNCATE TABLE batch_practical_access`);
+    // await db.execute(sql`TRUNCATE TABLE courses`);
+    // await db.execute(sql`TRUNCATE TABLE courses_faculty`);
+    // await db.execute(sql`TRUNCATE TABLE departments`);
+    // await db.execute(sql`TRUNCATE TABLE faculty`);
+    // await db.execute(sql`TRUNCATE TABLE practicals`);
+    // await db.execute(sql`TRUNCATE TABLE prac_io`);
+    // await db.execute(sql`TRUNCATE TABLE prac_language`);
+    // await db.execute(sql`TRUNCATE TABLE programming_language`);
+    // await db.execute(sql`TRUNCATE TABLE reports`);
+    // await db.execute(sql`TRUNCATE TABLE students`);
+    // await db.execute(sql`TRUNCATE TABLE submissions`);
+    // await db.execute(sql`TRUNCATE TABLE users`);
 
-    // Enable foreign key checks
-    await db.execute(sql`SET FOREIGN_KEY_CHECKS = 1`);
+    // // Enable foreign key checks
+    // await db.execute(sql`SET FOREIGN_KEY_CHECKS = 1`);
 
     const languages = [
       { "id": 45, "name": "Assembly (NASM 2.14.02)" }, { "id": 46, "name": "Bash (5.0.0)" }, { "id": 47, "name": "Basic (FBC 1.07.1)" },
@@ -109,7 +109,7 @@ async function seed(): Promise<void> {
       hodInserts.push(hod);
 
       // Insert 5 Faculty members for each department
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 2; i++) {
         const facultyUsername = `${dept.name.replace(/\s+/g, "_").toLowerCase()}_faculty${i}`;
         const facultyEmail = `${facultyUsername}@example.com`;
 
@@ -191,7 +191,7 @@ async function seed(): Promise<void> {
 
     // Seed students
     for (const batch of insertedBatches) {
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 2; i++) {
         const studentUsername = `student_${batch.department_id}_${batch.semester}_${batch.division}_${batch.batch}_${i}`;
         const studentEmail = `${studentUsername}@example.com`;
 
@@ -233,7 +233,7 @@ async function seed(): Promise<void> {
     ];
 
     for (const dept of insertedDepartments) {
-      for (let semester = 1; semester <= 8; semester++) {
+      for (let semester = 1; semester <= 3; semester++) {
         for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
           courseInserts.push({
             course_name: `${courseNames[i % courseNames.length]} Sem ${semester}`,

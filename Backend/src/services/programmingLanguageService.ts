@@ -1,7 +1,7 @@
-import { db } from 'config/db';
-import { programming_language } from 'models/schema';
+import { db } from '@/config/db';
+import { programming_language } from '@/models/schema';
 import { eq } from 'drizzle-orm';
-import { AppError } from '../utils/errors';
+import { AppError } from '@/utils/errors';
 
 export async function getProgrammingLanguages() {
     return await db.select({ "programming_language_id": programming_language.programming_language_id, "language_name": programming_language.language_name }).from(programming_language);

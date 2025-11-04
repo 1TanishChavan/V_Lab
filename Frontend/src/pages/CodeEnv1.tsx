@@ -65,7 +65,7 @@ const CodingEnvironmentPage = () => {
 
   // Maximum number of polling attempts and interval
   const MAX_POLL_ATTEMPTS = 10;
-  const POLL_INTERVAL = 5000;
+  const POLL_INTERVAL = 8000;
 
   useEffect(() => {
     const fetchPracticalDetails = async () => {
