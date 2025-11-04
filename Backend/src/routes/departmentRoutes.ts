@@ -12,8 +12,8 @@
 // export default router;
 
 import express from 'express';
-import { getDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentById } from '@/controllers/departmentController';
-import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
+import { getDepartments, createDepartment, updateDepartment, deleteDepartment, getDepartmentById } from './../controllers/departmentController';
+import { authMiddleware, roleMiddleware } from './../middlewares/authMiddleware';
 
 const router = express.Router();
 

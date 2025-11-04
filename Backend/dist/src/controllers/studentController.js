@@ -42,9 +42,9 @@ exports.getDepartments = getDepartments;
 exports.getSemesters = getSemesters;
 exports.getDivisions = getDivisions;
 exports.getBatches = getBatches;
-const studentService = __importStar(require("../services/studentService"));
-const submissionService = __importStar(require("../services/submissionService"));
-const errors_1 = require("../utils/errors");
+const studentService = __importStar(require("./../services/studentService"));
+const submissionService = __importStar(require("./../services/submissionService"));
+const errors_1 = require("./../../src/utils/errors");
 function getStudentsByDepartment(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

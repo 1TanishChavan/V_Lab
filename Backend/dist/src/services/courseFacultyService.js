@@ -14,10 +14,10 @@ exports.getCoursesByFaculty = getCoursesByFaculty;
 exports.assignCourseToFaculty = assignCourseToFaculty;
 exports.updateCourseFacultyAssignment = updateCourseFacultyAssignment;
 exports.getFacultyByCourse = getFacultyByCourse;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function deleteCourseFacultyAssignment(courseId, batchId) {
     return __awaiter(this, void 0, void 0, function* () {
         const result = yield db_1.db.delete(schema_1.courses_faculty)

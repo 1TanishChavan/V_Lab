@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const facultyController_1 = require("../controllers/facultyController");
-const authMiddleware_1 = require("../middlewares/authMiddleware");
+const facultyController_1 = require("./../controllers/facultyController");
+const authMiddleware_1 = require("./../middlewares/authMiddleware");
 const router = express_1.default.Router();
 router.post('/', authMiddleware_1.authMiddleware, (0, authMiddleware_1.roleMiddleware)(['Admin', 'HOD']), facultyController_1.addFaculty);
 router.get('/batches', authMiddleware_1.authMiddleware, (0, authMiddleware_1.roleMiddleware)(['Faculty', 'HOD']), facultyController_1.getFacultyBatches);

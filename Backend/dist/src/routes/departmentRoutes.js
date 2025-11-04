@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const departmentController_1 = require("../controllers/departmentController");
-const authMiddleware_1 = require("../middlewares/authMiddleware");
+const departmentController_1 = require("./../controllers/departmentController");
+const authMiddleware_1 = require("./../middlewares/authMiddleware");
 const router = express_1.default.Router();
 router.get('/', departmentController_1.getDepartments);
 router.post('/', authMiddleware_1.authMiddleware, (0, authMiddleware_1.roleMiddleware)(['Admin']), departmentController_1.createDepartment);

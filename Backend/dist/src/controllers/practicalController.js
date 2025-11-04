@@ -39,8 +39,8 @@ exports.getPracticalByCourse = getPracticalByCourse;
 exports.getPracticalById = getPracticalById;
 exports.getPracticalLanguages = getPracticalLanguages;
 exports.updatePractical = updatePractical;
-const practicalService = __importStar(require("../services/practicalService"));
-const errors_1 = require("../utils/errors");
+const practicalService = __importStar(require("./../services/practicalService"));
+const errors_1 = require("./../utils/errors");
 function createPractical(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

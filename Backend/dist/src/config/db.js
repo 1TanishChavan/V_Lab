@@ -29,13 +29,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = exports.poolConnection = void 0;
 const mysql2_1 = require("drizzle-orm/mysql2");
 const promise_1 = __importDefault(require("mysql2/promise"));
-const schema = __importStar(require("../models/schema"));
+const schema = __importStar(require("./../../src/models/schema"));
 require("dotenv/config");
+const { MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, } = process.env;
+if (!MYSQL_HOST ||
+    !MYSQL_USER ||
+    !MYSQL_PASSWORD ||
+    !MYSQL_DATABASE ||
+    !MYSQL_PORT) {
+    throw new Error("One or more required environment variables are missing");
+}
+const port = parseInt(MYSQL_PORT, 10);
+if (isNaN(port)) {
+    throw new Error("Invalid MYSQL_PORT: Must be a number.");
+}
 exports.poolConnection = promise_1.default.createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
+    host: MYSQL_HOST,
+    user: MYSQL_USER,
+    password: MYSQL_PASSWORD,
+    database: MYSQL_DATABASE,
+    port: port,
     connectionLimit: 1,
 });
 exports.db = (0, mysql2_1.drizzle)(exports.poolConnection, { schema, mode: "default" });

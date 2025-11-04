@@ -13,7 +13,7 @@ exports.authMiddleware = authMiddleware;
 exports.roleMiddleware = roleMiddleware;
 const jwtUtils_1 = require("../utils/jwtUtils");
 const errors_1 = require("../utils/errors");
-const userService_1 = require("../services/userService");
+const userService_1 = require("./../services/userService");
 function authMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;

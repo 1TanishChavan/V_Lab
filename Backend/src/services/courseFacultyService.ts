@@ -1,7 +1,7 @@
-import { db } from '@/config/db';
-import { courses_faculty, faculty, courses, batch, users } from '@/models/schema';
+import { db } from './../config/db';
+import { courses_faculty, faculty, courses, batch, users } from './../models/schema';
 import { eq, and } from 'drizzle-orm';
-import { AppError } from '@/utils/errors';
+import { AppError } from './../utils/errors';
 
 // export async function assignCourseToFaculty(assignmentData: any) {
 //     const { course_id, faculty_id, batch_id } = assignmentData;

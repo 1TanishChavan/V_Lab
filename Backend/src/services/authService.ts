@@ -1,9 +1,9 @@
-import { db } from '@/config/db';
-import { users, students, faculty, batch } from '@/models/schema';
-import { generateToken } from '@/utils/jwtUtils';
+import { db } from './../config/db';
+import { users, students, faculty, batch } from './../models/schema';
+import { generateToken } from './../utils/jwtUtils';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
-import { AppError } from '@/utils/errors';
+import { AppError } from './../utils/errors';
 // import logger from '../utils/logger';
 
 // export async function registerUser(userData: any) {

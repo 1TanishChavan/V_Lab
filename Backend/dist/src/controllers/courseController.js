@@ -39,7 +39,7 @@ exports.deleteCourse = deleteCourse;
 exports.getCoursesBySemesterAndDepartment = getCoursesBySemesterAndDepartment;
 exports.getCoursesByDepartment = getCoursesByDepartment;
 exports.getCoursesById = getCoursesById;
-const courseService = __importStar(require("../services/courseService"));
+const courseService = __importStar(require("./../services/courseService"));
 function getCourses(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

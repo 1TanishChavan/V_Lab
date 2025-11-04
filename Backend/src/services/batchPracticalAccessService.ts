@@ -1,5 +1,5 @@
-import { db } from '@/config/db';
-import { batch_practical_access, batch, courses_faculty } from '@/models/schema';
+import { db } from './../config/db';
+import { batch_practical_access, batch, courses_faculty } from './../models/schema';
 import { eq, and } from 'drizzle-orm';
 
 // export async function createBatchPracticalAccess(accessData: any) {

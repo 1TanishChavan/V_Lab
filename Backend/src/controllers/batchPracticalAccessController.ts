@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import * as batchPracticalAccessService from '@/src/services/batchPracticalAccessService';
-import { AppError } from '@/src/utils/errors';
-import { AuthenticatedRequest } from '@/middlewares/authMiddleware';
+import * as batchPracticalAccessService from './../../src/services/batchPracticalAccessService';
+import { AppError } from './../../src/utils/errors';
+import { AuthenticatedRequest } from './../middlewares/authMiddleware';
 
 // export async function createBatchPracticalAccess(req: Request, res: Response, next: NextFunction) {
 //     try {

@@ -34,7 +34,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBatchPracticalAccess = void 0;
 exports.createOrUpdateBatchPracticalAccess = createOrUpdateBatchPracticalAccess;
-const batchPracticalAccessService = __importStar(require("../services/batchPracticalAccessService"));
+const batchPracticalAccessService = __importStar(require("./../../src/services/batchPracticalAccessService"));
 const getBatchPracticalAccess = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const practicalId = parseInt(req.params.practicalId);

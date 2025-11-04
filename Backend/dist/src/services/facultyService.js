@@ -16,10 +16,10 @@ exports.getFacultyByDepartment_omkar = getFacultyByDepartment_omkar;
 exports.getFacultyByDepartment_tanish = getFacultyByDepartment_tanish;
 exports.deleteFaculty = deleteFaculty;
 exports.getFacultyDetails = getFacultyDetails;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function createFaculty(_a) {
     return __awaiter(this, arguments, void 0, function* ({ username, email, password, department_id, role, }) {
         var _b;

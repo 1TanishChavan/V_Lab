@@ -11,8 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createOrUpdateBatchPracticalAccess = createOrUpdateBatchPracticalAccess;
 exports.getBatchPracticalAccess = getBatchPracticalAccess;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
 function createOrUpdateBatchPracticalAccess(data) {
     return __awaiter(this, void 0, void 0, function* () {

@@ -39,8 +39,8 @@ exports.getAllFaculty = getAllFaculty;
 exports.getFacultyBatches = getFacultyBatches;
 exports.deleteFaculty = deleteFaculty;
 exports.getFacultyDetails = getFacultyDetails;
-const facultyService = __importStar(require("../services/facultyService"));
-const errors_1 = require("../utils/errors");
+const facultyService = __importStar(require("./../services/facultyService"));
+const errors_1 = require("./../utils/errors");
 function addFaculty(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

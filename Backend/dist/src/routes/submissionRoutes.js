@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const submissionController_1 = require("../controllers/submissionController");
-const authMiddleware_1 = require("../middlewares/authMiddleware");
-const createRateLimiter_1 = require("../middlewares/createRateLimiter");
+const submissionController_1 = require("./../controllers/submissionController");
+const authMiddleware_1 = require("./../middlewares/authMiddleware");
+const createRateLimiter_1 = require("./../middlewares/createRateLimiter");
 const router = express_1.default.Router();
 router.post('/submit-code', authMiddleware_1.authMiddleware, (0, createRateLimiter_1.createRateLimiter)({
     windowMs: 3 * 1000,

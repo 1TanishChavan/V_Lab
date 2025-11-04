@@ -29,10 +29,10 @@ exports.updatePractical = updatePractical;
 exports.checkFacultyPracticalPermission = checkFacultyPracticalPermission;
 exports.getPracticalTestCases = getPracticalTestCases;
 exports.getPracticalLanguages = getPracticalLanguages;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function createPractical(practicalData) {
     return __awaiter(this, void 0, void 0, function* () {
         const { prac_io: pracIoData, prac_language: pracLanguageData } = practicalData, practicalInfo = __rest(practicalData, ["prac_io", "prac_language"]);

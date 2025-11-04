@@ -1,9 +1,9 @@
-import { db } from '@/config/db';
-import { submissions, practicals, students, users, prac_io, prac_language, courses, batch_practical_access, batch, courses_faculty } from '@/models/schema';
+import { db } from './../config/db';
+import { submissions, practicals, students, users, prac_io, prac_language, courses, batch_practical_access, batch, courses_faculty } from './../models/schema';
 import { eq, and, gt } from 'drizzle-orm';
-import { AppError } from '@/utils/errors';
+import { AppError } from './../utils/errors';
 import axios from 'axios';
-import redis from '@/config/redis';
+import redis from './../config/redis';
 import { Buffer } from 'buffer'; // Import Buffer for Base64
 
 // const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');

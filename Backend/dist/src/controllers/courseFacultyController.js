@@ -37,8 +37,8 @@ exports.getCoursesByFaculty = getCoursesByFaculty;
 exports.assignCourseToFaculty = assignCourseToFaculty;
 exports.updateCourseFacultyAssignment = updateCourseFacultyAssignment;
 exports.getFacultyByCourse = getFacultyByCourse;
-const courseFacultyService = __importStar(require("../services/courseFacultyService"));
-const errors_1 = require("../utils/errors");
+const courseFacultyService = __importStar(require("./../services/courseFacultyService"));
+const errors_1 = require("./../utils/errors");
 function deleteCourseFacultyAssignment(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

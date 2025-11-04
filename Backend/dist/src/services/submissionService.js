@@ -28,12 +28,12 @@ exports.runCode = runCode;
 exports.submitCode = submitCode;
 exports.getSubmissionStatus = getSubmissionStatus;
 exports.updateSubmissionCode = updateSubmissionCode;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 const axios_1 = __importDefault(require("axios"));
-const redis_1 = __importDefault(require("../config/redis"));
+const redis_1 = __importDefault(require("./../config/redis"));
 const buffer_1 = require("buffer");
 const JUDGE0_API_URL = process.env.JUDGE0_API_URL || 'http://localhost:2358';
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
@@ -56,10 +56,10 @@ const judge0PostParams = {
 };
 const SUBMISSION_TIMEOUT = 30000;
 const RESULTS_EXPIRY = 3600;
-const SUBMISSION_RATE_LIMIT = 3;
-const RUN_RATE_LIMIT = 1;
+const SUBMISSION_RATE_LIMIT = 30000;
+const RUN_RATE_LIMIT = 15000;
 const MAX_POLL_ATTEMPTS = 6;
-const POLL_INTERVAL = 5000;
+const POLL_INTERVAL = 7000;
 function getSubmissionResults(submissionId) {
     return __awaiter(this, void 0, void 0, function* () {
         const redisKey = `submission:${submissionId}`;

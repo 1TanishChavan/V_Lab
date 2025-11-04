@@ -1,6 +1,6 @@
 import express from 'express';
-import { getProgrammingLanguages, createProgrammingLanguage, updateProgrammingLanguage, deleteProgrammingLanguage } from '@/controllers/programmingLanguageController';
-import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
+import { getProgrammingLanguages, createProgrammingLanguage, updateProgrammingLanguage, deleteProgrammingLanguage } from './../controllers/programmingLanguageController';
+import { authMiddleware, roleMiddleware } from './../middlewares/authMiddleware';
 
 const router = express.Router();
 

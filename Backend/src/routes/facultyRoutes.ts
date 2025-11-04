@@ -5,8 +5,8 @@ import {
     getAllFaculty,
     getFacultyBatches,
     deleteFaculty, getFacultyDetails,
-} from '@/controllers/facultyController';
-import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
+} from './../controllers/facultyController';
+import { authMiddleware, roleMiddleware } from './../middlewares/authMiddleware';
 
 const router = express.Router();
 

@@ -5,8 +5,8 @@ import {
     getDivisions,
     getBatches,
     getStudentsByDepartment,
-} from '@/controllers/studentController';
-import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
+} from './../controllers/studentController';
+import { authMiddleware, roleMiddleware } from './../middlewares/authMiddleware';
 
 const router = express.Router();
 

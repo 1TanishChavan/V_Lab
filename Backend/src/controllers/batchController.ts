@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import * as batchService from '@/services/batchService';
-import { AppError } from '@/src/utils/errors';
-import { AuthenticatedRequest } from '@/src/middlewares/authMiddleware';
+import * as batchService from './../services/batchService';
+import { AppError } from './../../src/utils/errors';
+import { AuthenticatedRequest } from './../../src/middlewares/authMiddleware';
 
 // Fetch batches and divisions
 export async function getBatches(req: Request, res: Response) {

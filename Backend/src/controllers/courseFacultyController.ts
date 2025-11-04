@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import * as courseFacultyService from '@/services/courseFacultyService';
-import { AppError } from '@/utils/errors';
-import { AuthenticatedRequest } from '@/middlewares/authMiddleware';
+import * as courseFacultyService from './../services/courseFacultyService';
+import { AppError } from './../utils/errors';
+import { AuthenticatedRequest } from './../middlewares/authMiddleware';
 
 // export async function assignCourseToFaculty(req: AuthenticatedRequest, res: Response, next: NextFunction) {
 //     try {

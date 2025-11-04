@@ -1,7 +1,7 @@
-import { db } from '@/config/db';
-import { users, faculty, students } from '@/models/schema';
+import { db } from './../config/db';
+import { users, faculty, students } from './../models/schema';
 import { eq } from 'drizzle-orm';
-import { AppError } from '@/utils/errors';
+import { AppError } from './../utils/errors';
 
 export async function getUserById(userId: number) {
     const user = await db.select().from(users).where(eq(users.user_id, userId)).limit(1);

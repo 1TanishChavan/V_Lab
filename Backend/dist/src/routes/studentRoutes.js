@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const studentController_1 = require("../controllers/studentController");
-const authMiddleware_1 = require("../middlewares/authMiddleware");
+const studentController_1 = require("./../controllers/studentController");
+const authMiddleware_1 = require("./../middlewares/authMiddleware");
 const router = express_1.default.Router();
 router.get('/department/:department', authMiddleware_1.authMiddleware, studentController_1.getStudentsByDepartment);
 router.get('/batch/:batchId', authMiddleware_1.authMiddleware, studentController_1.getStudentsByBatch);

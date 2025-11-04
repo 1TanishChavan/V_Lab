@@ -13,10 +13,10 @@ exports.getUserById = getUserById;
 exports.updateUser = updateUser;
 exports.deleteUser = deleteUser;
 exports.getAllUsers = getAllUsers;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function getUserById(userId) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = yield db_1.db.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.user_id, userId)).limit(1);

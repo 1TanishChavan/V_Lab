@@ -13,10 +13,10 @@ exports.getProgrammingLanguages = getProgrammingLanguages;
 exports.createProgrammingLanguage = createProgrammingLanguage;
 exports.updateProgrammingLanguage = updateProgrammingLanguage;
 exports.deleteProgrammingLanguage = deleteProgrammingLanguage;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function getProgrammingLanguages() {
     return __awaiter(this, void 0, void 0, function* () {
         return yield db_1.db.select({ "programming_language_id": schema_1.programming_language.programming_language_id, "language_name": schema_1.programming_language.language_name }).from(schema_1.programming_language);

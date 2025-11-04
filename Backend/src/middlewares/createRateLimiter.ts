@@ -51,9 +51,9 @@
 // };
 
 import { Request, Response, NextFunction } from 'express';
-import redis from '@/config/redis';
-import { AppError } from '@/utils/errors';
-import { AuthenticatedRequest } from '@/middlewares/authMiddleware';
+import redis from './../config/redis';
+import { AppError } from './../utils/errors';
+import { AuthenticatedRequest } from './../middlewares/authMiddleware';
 
 interface RateLimitOptions {
     windowMs: number;

@@ -1,5 +1,5 @@
 import express from 'express';
-import redis from '@/config/redis';
+import redis from './../config/redis';
 
 const router = express.Router();
 

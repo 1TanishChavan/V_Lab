@@ -14,12 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerUser = registerUser;
 exports.loginUser = loginUser;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
-const jwtUtils_1 = require("../utils/jwtUtils");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
+const jwtUtils_1 = require("./../utils/jwtUtils");
 const drizzle_orm_1 = require("drizzle-orm");
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function registerUser(userData) {
     return __awaiter(this, void 0, void 0, function* () {
         const hashedPassword = yield bcrypt_1.default.hash(userData.password, 10);

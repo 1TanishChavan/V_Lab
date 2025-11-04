@@ -37,7 +37,7 @@ exports.createBatch = createBatch;
 exports.updateBatch = updateBatch;
 exports.deleteBatch = deleteBatch;
 exports.getBatchesByDepartmentAndSemester = getBatchesByDepartmentAndSemester;
-const batchService = __importStar(require("../services/batchService"));
+const batchService = __importStar(require("./../services/batchService"));
 function getBatches(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { department_id, semester } = req.query;

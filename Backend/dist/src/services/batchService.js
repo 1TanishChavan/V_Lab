@@ -14,10 +14,10 @@ exports.updateBatch = updateBatch;
 exports.deleteBatch = deleteBatch;
 exports.getBatchesByDepartmentAndSemester = getBatchesByDepartmentAndSemester;
 exports.getBatches = getBatches;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function createBatch(batchData) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

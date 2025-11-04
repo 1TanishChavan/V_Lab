@@ -8,9 +8,9 @@ import {
     updateStudent,
     deleteStudent, getPreviousSubmission,
     submitCode, runCode, getRunResult, getSubmissionStatus
-} from '@/controllers/submissionController';
-import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
-import { createRateLimiter } from '@/middlewares/createRateLimiter';
+} from './../controllers/submissionController';
+import { authMiddleware, roleMiddleware } from './../middlewares/authMiddleware';
+import { createRateLimiter } from './../middlewares/createRateLimiter';
 
 const router = express.Router();
 

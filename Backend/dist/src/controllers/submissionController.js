@@ -45,11 +45,11 @@ exports.getPreviousSubmission = getPreviousSubmission;
 exports.submitCode = submitCode;
 exports.getSubmissionStatus = getSubmissionStatus;
 exports.getPracticalWithSubmissionStatus = getPracticalWithSubmissionStatus;
-const submissionService = __importStar(require("../services/submissionService"));
-const errors_1 = require("../utils/errors");
-const schema_1 = require("../models/schema");
+const submissionService = __importStar(require("./../services/submissionService"));
+const errors_1 = require("./../../src/utils/errors");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const db_1 = require("../config/db");
+const db_1 = require("./../config/db");
 function runCode(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

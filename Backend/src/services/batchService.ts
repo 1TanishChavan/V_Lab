@@ -1,7 +1,7 @@
-import { db } from '@/config/db';
-import { batch } from '@/models/schema';
+import { db } from './../config/db';
+import { batch } from './../models/schema';
 import { eq, and } from 'drizzle-orm';
-import { AppError } from '@/utils/errors';
+import { AppError } from './../utils/errors';
 
 // Add new batch
 // export async function addBatch(req: Request, res: Response) {

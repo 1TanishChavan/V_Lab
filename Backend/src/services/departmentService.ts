@@ -35,10 +35,10 @@
 //     }
 // }   
 
-import { db } from '@/config/db';
-import { departments } from '@/models/schema';
+import { db } from './../config/db';
+import { departments } from './../models/schema';
 import { eq } from 'drizzle-orm';
-import { AppError } from '@/utils/errors';
+import { AppError } from './../utils/errors';
 
 export async function getAllDepartments() {
     return await db.select().from(departments);

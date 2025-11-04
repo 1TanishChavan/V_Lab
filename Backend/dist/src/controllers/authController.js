@@ -34,8 +34,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.register = register;
 exports.login = login;
-const authService = __importStar(require("../services/authService"));
-const errors_1 = require("../utils/errors");
+const authService = __importStar(require("./../services/authService"));
+const errors_1 = require("./../../src/utils/errors");
 function register(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

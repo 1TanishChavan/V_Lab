@@ -1,7 +1,7 @@
 import express from 'express';
-import { register, login } from '@/controllers/authController';
-import { validateRequestBody } from '@/middlewares/validationMiddleware';
-import { insertUserSchema, loginSchema } from '@/src/schemas';
+import { register, login } from './../controllers/authController';
+import { validateRequestBody } from './../middlewares/validationMiddleware';
+import { insertUserSchema, loginSchema } from './../../src/schemas';
 // import logger from '../../src/utils/logger';
 
 const router = express.Router();

@@ -1,9 +1,9 @@
 import express from 'express';
-import { getBatchPracticalAccess, createOrUpdateBatchPracticalAccess } from '@/controllers/batchPracticalAccessController';
+import { getBatchPracticalAccess, createOrUpdateBatchPracticalAccess } from './../controllers/batchPracticalAccessController';
 // import { createBatchPracticalAccess, deleteBatchPracticalAccess, updateBatchPracticalAccess} from 'src/controllers/batchPracticalAccessController';
-import { authMiddleware, roleMiddleware } from '@/middlewares/authMiddleware';
-import { validateRequestBody } from '@/middlewares/validationMiddleware';
-import { insertBatchPracticalAccessSchema, updateBatchPracticalAccessSchema } from '@/src/schemas';
+import { authMiddleware, roleMiddleware } from './../middlewares/authMiddleware';
+import { validateRequestBody } from './../middlewares/validationMiddleware';
+import { insertBatchPracticalAccessSchema, updateBatchPracticalAccessSchema } from './../../src/schemas';
 
 const router = express.Router();
 

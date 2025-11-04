@@ -14,10 +14,10 @@ exports.createDepartment = createDepartment;
 exports.updateDepartment = updateDepartment;
 exports.deleteDepartment = deleteDepartment;
 exports.getDepartmentById = getDepartmentById;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function getAllDepartments() {
     return __awaiter(this, void 0, void 0, function* () {
         return yield db_1.db.select().from(schema_1.departments);

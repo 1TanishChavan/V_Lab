@@ -36,8 +36,8 @@ exports.getProgrammingLanguages = getProgrammingLanguages;
 exports.createProgrammingLanguage = createProgrammingLanguage;
 exports.updateProgrammingLanguage = updateProgrammingLanguage;
 exports.deleteProgrammingLanguage = deleteProgrammingLanguage;
-const programmingLanguageService = __importStar(require("../services/programmingLanguageService"));
-const errors_1 = require("../utils/errors");
+const programmingLanguageService = __importStar(require("./../services/programmingLanguageService"));
+const errors_1 = require("./../../src/utils/errors");
 function getProgrammingLanguages(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

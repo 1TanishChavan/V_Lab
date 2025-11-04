@@ -21,10 +21,10 @@ exports.getStudentByRollId = getStudentByRollId;
 exports.getStudentsByDepartment = getStudentsByDepartment;
 exports.getStudentsByDepartmentAndSemester = getStudentsByDepartmentAndSemester;
 exports.getBatchesByDepartmentAndSemester = getBatchesByDepartmentAndSemester;
-const db_1 = require("../config/db");
-const schema_1 = require("../models/schema");
+const db_1 = require("./../config/db");
+const schema_1 = require("./../models/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const errors_1 = require("../utils/errors");
+const errors_1 = require("./../utils/errors");
 function getStudentSubmissions(studentId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
