@@ -15,7 +15,6 @@ export const departments = mysqlTable('departments', {
     department_id: int('department_id').primaryKey().autoincrement(),
     name: varchar('name', { length: 225 }).notNull(),
 }, (table) => ({
-    nameIndex: index('name_idx').on(table.name),
 }));
 
 export const users = mysqlTable('users', {
@@ -24,9 +23,7 @@ export const users = mysqlTable('users', {
     password: varchar('password', { length: 225 }).notNull(),
     email: varchar('email', { length: 225 }).notNull(),
     role: mysqlEnum('role', ['Student', 'Faculty', 'HOD', 'Admin']).notNull(),
-    // photo_url: varchar('pdf_url', { length: 255 }), // Added field for storing PDF URL
 }, (table) => ({
-    usernameIndex: index('username_idx').on(table.username),
     emailIndex: index('email_idx').on(table.email),
     roleIndex: index('role_idx').on(table.role),
 }));
@@ -38,10 +35,6 @@ export const batch = mysqlTable('batch', {
     division: varchar('division', { length: 2 }).notNull(),
     batch: varchar('batch', { length: 2 }).notNull(),
 }, (table) => ({
-    departmentIdIndex: index('department_id_idx').on(table.department_id),
-    semesterIndex: index('semester_idx').on(table.semester),
-    divisionIndex: index('division_idx').on(table.division),
-    batchIndex: index('batch_idx').on(table.batch),
 }));
 
 export const students = mysqlTable('students', {
@@ -49,14 +42,12 @@ export const students = mysqlTable('students', {
     batch_id: int('batch_id').notNull().references(() => batch.batch_id),
     roll_id: varchar('roll_id', { length: 20 }).notNull(),
 }, (table) => ({
-    batchIdIndex: index('batch_id_idx').on(table.batch_id),
 }));
 
 export const faculty = mysqlTable('faculty', {
     faculty_id: int('faculty_id').primaryKey().references(() => users.user_id),
     department_id: int('department_id').notNull().references(() => departments.department_id),
 }, (table) => ({
-    departmentIdIndex: index('department_id_idx').on(table.department_id),
 }));
 
 export const courses = mysqlTable('courses', {
@@ -66,9 +57,6 @@ export const courses = mysqlTable('courses', {
     semester: tinyint('semester').notNull(),
     department_id: int('department_id').notNull().references(() => departments.department_id),
 }, (table) => ({
-    courseNameIndex: index('course_name_idx').on(table.course_name),
-    semesterIndex: index('semester_idx').on(table.semester),
-    departmentIdIndex: index('department_id_idx').on(table.department_id),
 }));
 
 export const courses_faculty = mysqlTable('courses_faculty', {
@@ -77,9 +65,6 @@ export const courses_faculty = mysqlTable('courses_faculty', {
     batch_id: int('batch_id').notNull().references(() => batch.batch_id),
 }, (table) => ({
     pk: primaryKey({ columns: [table.course_id, table.faculty_id, table.batch_id] }),
-    courseIdIndex: index('course_id_idx').on(table.course_id),
-    facultyIdIndex: index('faculty_id_idx').on(table.faculty_id),
-    batchIdIndex: index('batch_id_idx').on(table.batch_id),
 }));
 
 export const practicals = mysqlTable('practicals', {
@@ -92,7 +77,6 @@ export const practicals = mysqlTable('practicals', {
     description: text('description').notNull(),
     pdf_url: varchar('pdf_url', { length: 255 }),
 }, (table) => ({
-    practicalNameIndex: index('practical_name_idx').on(table.practical_name),
     courseIdIndex: index('course_id_idx').on(table.course_id),
 }));
 
@@ -131,10 +115,6 @@ export const batch_practical_access = mysqlTable('batch_practical_access', {
     lock: boolean('lock').notNull(),
     deadline: datetime('deadline'),
 }, (table) => ({
-    practicalIdIndex: index('practical_id_idx').on(table.practical_id),
-    batchIdIndex: index('batch_id_idx').on(table.batch_id),
-    lockIndex: index('lock_idx').on(table.lock),
-    deadlineIndex: index('deadline_idx').on(table.deadline),
 }));
 
 export const submissions = mysqlTable('submissions', {
@@ -153,73 +133,6 @@ export const submissions = mysqlTable('submissions', {
     practicalIndex: index('practical_idx').on(table.practical_id),
     studentIndex: index('student_idx').on(table.student_id),
 }));
-
-// export const practicals = mysqlTable('practicals', {
-//     practical_id: int('practical_id').primaryKey().autoincrement(),
-//     sr_no: int('sr_no').notNull(),
-//     practical_name: varchar('practical_name', { length: 225 }).notNull(),
-//     course_id: int('course_id').notNull().references(() => courses.course_id),
-//     description: text('description').notNull(),
-//     pdf_url: varchar('pdf_url', { length: 255 }), // Added field for storing PDF URL
-// }, (table) => ({
-//     practicalNameIndex: index('practical_name_idx').on(table.practical_name),
-//     courseIdIndex: index('course_id_idx').on(table.course_id),
-// }));
-
-// export const prac_io = mysqlTable('prac_io', {
-//     prac_io_id: int('prac_io_id').primaryKey().autoincrement(),
-//     practical_id: int('practical_id').notNull().references(() => practicals.practical_id),
-//     input: text('input').notNull(),
-//     output: text('output').notNull(),
-//     isPublic: boolean('is_public').notNull().default(false), // Added isPublic field
-// }, (table) => ({
-//     practicalIdIndex: index('practical_id_idx').on(table.practical_id),
-//     isPublicIndex: index('is_public_idx').on(table.isPublic), // Added index for isPublic
-// }));
-
-// export const prac_language = mysqlTable('prac_language', {
-//     prac_language_id: int('prac_language_id').primaryKey().autoincrement(),
-//     practical_id: int('practical_id').notNull().references(() => practicals.practical_id),
-//     programming_language_id: smallint('programming_language_id').notNull().references(() => programming_language.programming_language_id)
-// }, (table) => ({
-//     // practicalIdIndex: index('practical_id_idx').on(table.practical_id),
-// }));
-
-// export const batch_practical_access = mysqlTable('batch_practical_access', {
-//     batch_practical_access_id: int('batch_practical_access_id').primaryKey().autoincrement(),
-//     practical_id: int('practical_id').notNull().references(() => practicals.practical_id),
-//     batch_id: int('batch_id').notNull().references(() => batch.batch_id),
-//     lock: boolean('lock').notNull(),
-//     deadline: datetime('deadline'),
-// }, (table) => ({
-//     practicalIdIndex: index('practical_id_idx').on(table.practical_id),
-//     batchIdIndex: index('batch_id_idx').on(table.batch_id),
-//     lockIndex: index('lock_idx').on(table.lock),
-//     deadlineIndex: index('deadline_idx').on(table.deadline),
-// }));
-
-
-// export const submissions = mysqlTable('submissions', {
-//     submission_id: int('submission_id').primaryKey().autoincrement(),
-//     practical_id: int('practical_id')
-//         .notNull()
-//         .references(() => practicals.practical_id),
-//     student_id: int('student_id')
-//         .notNull()
-//         .references(() => students.student_id),
-//     // programming_language_id: int('programming_language_id')
-//     //     .notNull()
-//     //     .references(() => programming_language.programming_language_id),
-//     code_submitted: text('code_submitted').notNull(),
-//     status: mysqlEnum('status', ['Accepted', 'Rejected', 'Pending']).notNull().default('Pending'),
-//     marks: int('marks').default(0),
-//     submission_time: datetime('submission_time').default(sql`now(3)`),
-// },
-//     (table) => ({
-//         practicalIndex: index('practical_idx').on(table.practical_id),
-//         studentIndex: index('student_idx').on(table.student_id),
-//     }));
-
 
 export const reports = mysqlTable('reports', {
     report_id: int('report_id').primaryKey().autoincrement(),

@@ -19,7 +19,7 @@ interface CourseState {
     fetchCoursesByDepartment: (department_id: number) => Promise<void>;
 }
 
-export const useCourseStore = create<CourseState>((set) => ({
+export const useCourseStore = create<CourseState>((set, get) => ({
     courses: [],
     fetchCourses: async () => {
         try {
@@ -32,11 +32,27 @@ export const useCourseStore = create<CourseState>((set) => ({
     fetchCoursesById: async (id) => {
         try {
             const response = await api.get(`/courses/${id}`);
-            set((state) => ({
-                courses: state.courses.map((course) =>
-                    course.course_id === id ? { ...course, ...response.data } : course
-                ),
-            }));
+            // The API returns an array like [{...course}], so we take the first item
+            const fetchedCourse = response.data[0];
+
+            if (!fetchedCourse) return;
+
+            set((state) => {
+                const exists = state.courses.find(c => c.course_id === id);
+                if (exists) {
+                    // Update existing
+                    return {
+                        courses: state.courses.map((course) =>
+                            course.course_id === id ? { ...course, ...fetchedCourse } : course
+                        ),
+                    };
+                } else {
+                    // Add new
+                    return {
+                        courses: [...state.courses, fetchedCourse]
+                    };
+                }
+            });
         } catch (error) {
             console.error('Failed to update course:', error);
             throw error;

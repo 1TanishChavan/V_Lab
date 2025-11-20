@@ -3,6 +3,7 @@ import { submissions, practicals, students, users, prac_io, prac_language, cours
 import { eq, and } from 'drizzle-orm';
 
 import { AppError } from './../utils/errors';
+
 export async function getStudentSubmissions(studentId: number) {
     try {
         const studentSubmissions = await db
@@ -53,8 +54,9 @@ export async function getStudentsWithFilters(filters: {
 
         // Apply filters dynamically based on the incoming request
         if (filters.department) {
+            // FIX: Filter by department_id (which is what the frontend sends) instead of name
             // @ts-ignore
-            query = query.where(eq(departments.name, filters.department));
+            query = query.where(eq(departments.department_id, parseInt(filters.department)));
         }
         if (filters.semester) {
             // @ts-ignore
@@ -93,42 +95,6 @@ export async function getStudentsWithDepartment() {
         .innerJoin(departments, eq(batch.department_id, departments.department_id))
         .where(eq(users.role, 'Student'));
 }
-
-
-// export async function getStudentsWithFilters(filters: {
-//     department?: string;
-//     semester?: string;
-//     division?: string;
-//     batch?: string;
-// }) {
-//     try {
-//         let query = db
-//             .select({
-//                 student_id: students.student_id,
-//                 name: users.username,
-//                 roll_id: students.roll_id,
-//                 email: users.email,
-//                 semester: batch.semester,
-//                 division: batch.division,
-//                 batch: batch.batch,
-//                 department_name: departments.name,
-//             })
-//             .from(students)
-//             .innerJoin(users, eq(students.student_id, users.user_id))
-//             .innerJoin(batch, eq(students.batch_id, batch.batch_id))
-//             .innerJoin(departments, eq(batch.department_id, departments.department_id));
-
-//         if (filters.department) query = query.where(eq(departments.name, filters.department));
-//         if (filters.semester) query = query.where(eq(batch.semester, parseInt(filters.semester)));
-//         if (filters.division) query = query.where(eq(batch.division, filters.division));
-//         if (filters.batch) query = query.where(eq(batch.batch, filters.batch));
-
-//         return await query;
-//     } catch (error) {
-//         console.error('Error in getStudentsWithFilters:', error);
-//         throw new AppError(500, 'Failed to fetch students');
-//     }
-// }
 
 export async function getDepartments() {
     try {

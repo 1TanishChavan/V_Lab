@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import React, { useState, useEffect, useMemo } from "react";
 import { useToast } from "../components/hooks/use-toast";
 import {
   Table,
@@ -28,6 +26,16 @@ import {
 } from "../components/ui/dialog";
 import useFacultyStore from "../store/facultyStore";
 import { useAuthStore } from "../store/authStore";
+import { Loader2, Plus, Trash2, Search } from "lucide-react";
+
+// Define types locally or import from types.ts
+interface NewUser {
+  username: string;
+  email: string;
+  password: string;
+  department_id: string;
+  role: "Faculty" | "HOD";
+}
 
 const FacultyPage = () => {
   const {
@@ -35,387 +43,324 @@ const FacultyPage = () => {
     departments,
     fetchDepartments,
     fetchFaculty,
-    addFaculty,
+    addFaculty, // Assuming this store action handles the API call
     deleteFaculty,
     isLoading,
-    error,
   } = useFacultyStore();
 
   const user = useAuthStore((state) => state.user);
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const [department, setDepartment] = useState("");
+
+  // UI State
+  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isFacultyModalOpen, setIsFacultyModalOpen] = useState(false);
-  const [isHODModalOpen, setIsHODModalOpen] = useState(false);
-  const [newFaculty, setNewFaculty] = useState({
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form State
+  const [newUser, setNewUser] = useState<NewUser>({
     username: "",
     email: "",
     password: "",
     department_id: "",
-    role: "faculty",
-  });
-  const [newHOD, setNewHOD] = useState({
-    username: "",
-    email: "",
-    password: "",
-    department_id: "",
-    role: "HOD",
+    role: "Faculty", // Default
   });
 
+  // 1. Load Initial Data
   useEffect(() => {
-    fetchDepartments();
-  }, []);
-
-  useEffect(() => {
-    fetchFaculty(department);
-  }, [department]);
-
-  const handleSearch = (e) => setSearchQuery(e.target.value);
-
-  const filteredFaculty = faculty.filter((member) =>
-    member.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleInputChange = (e, isHOD = false) => {
-    const { name, value } = e.target;
-    if (isHOD) {
-      setNewHOD((prev) => ({ ...prev, [name]: value }));
-    } else {
-      setNewFaculty((prev) => ({ ...prev, [name]: value }));
+    if (departments.length === 0) {
+      fetchDepartments();
     }
+  }, [fetchDepartments, departments.length]);
+
+  // 2. Fetch Faculty when Department Filter Changes
+  useEffect(() => {
+    const deptId = departmentFilter === "all" ? undefined : departmentFilter;
+    fetchFaculty(deptId);
+  }, [fetchFaculty, departmentFilter]);
+
+  // 3. Memoized Search Filtering
+  const filteredFaculty = useMemo(() => {
+    return faculty.filter(
+      (member) =>
+        member.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [faculty, searchQuery]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const handleAddFaculty = async () => {
-  //   try {
-  //     const hashedPassword = await bcrypt.hash(newFaculty.password, 10);
-  //     await addFaculty({ ...newFaculty, password: hashedPassword });
-  //     toast({
-  //       title: "Success",
-  //       description: "Faculty added successfully.",
-  //       variant: "default",
-  //     });
-  //     setIsFacultyModalOpen(false);
-  //     setNewFaculty({
-  //       username: "",
-  //       email: "",
-  //       password: "",
-  //       department_id: "",
-  //       role: "faculty",
-  //     });
-  //   } catch (error: any) {
-  //     console.error("Error adding faculty:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: error?.message || "Failed to add faculty.",
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
+  const handleAddUser = async () => {
+    if (
+      !newUser.username ||
+      !newUser.email ||
+      !newUser.password ||
+      !newUser.department_id
+    ) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  // const handleAddHOD = async () => {
-  //   try {
-  //     const hashedPassword = await bcrypt.hash(newHOD.password, 10);
-  //     await addFaculty({ ...newHOD, password: hashedPassword });
-  //     toast({
-  //       title: "Success",
-  //       description: "HOD added successfully.",
-  //       variant: "default",
-  //     });
-  //     setIsHODModalOpen(false);
-  //     setNewHOD({
-  //       username: "",
-  //       email: "",
-  //       password: "",
-  //       department_id: "",
-  //       role: "HOD",
-  //     });
-  //   } catch (error: any) {
-  //     console.error("Error adding HOD:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: error?.message || "Failed to add HOD.",
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
-
-  const handleAddFaculty = async () => {
+    setIsSubmitting(true);
     try {
-      const response = await api.post("/auth/register", {
-        ...newFaculty,
+      // Using the store action for consistency.
+      // Ensure your store's addFaculty calls the correct endpoint (likely /auth/register or /faculty)
+      // If the store expects 'department_id' as number, parse it.
+      await addFaculty({
+        ...newUser,
+        department_id: parseInt(newUser.department_id),
+      });
+
+      toast({
+        title: "Success",
+        description: `${newUser.role} added successfully.`,
+      });
+
+      setIsAddModalOpen(false);
+      setNewUser({
+        username: "",
+        email: "",
+        password: "",
+        department_id: "",
         role: "Faculty",
       });
-
-      const { user, token } = response.data;
-
-      toast({
-        title: "Success",
-        description: `Faculty ${user.username} added successfully.`,
-        variant: "default",
-      });
-
-      // Close the modal and reset the form
-      setIsFacultyModalOpen(false);
-      setNewFaculty({
-        username: "",
-        email: "",
-        password: "",
-        department_id: "",
-        role: "faculty",
-      });
-
-      // Optionally, refetch faculty to update the table with new data
-      fetchFaculty(department);
     } catch (error: any) {
-      console.error("Error adding faculty:", error);
+      console.error("Error adding user:", error);
       toast({
         title: "Error",
-        description: error?.message || "Failed to add faculty.",
+        description: "Failed to add user.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleAddHOD = async () => {
-    try {
-      const response = await api.post("/auth/register", {
-        ...newHOD,
-        role: "HOD",
-      });
-
-      const { user, token } = response.data;
-
-      toast({
-        title: "Success",
-        description: `HOD ${user.username} added successfully.`,
-        variant: "default",
-      });
-
-      // Close the modal and reset the form
-      setIsHODModalOpen(false);
-      setNewHOD({
-        username: "",
-        email: "",
-        password: "",
-        department_id: "",
-        role: "HOD",
-      });
-
-      // Optionally, refetch faculty to update the table with new data
-      fetchFaculty(department);
-    } catch (error: any) {
-      console.error("Error adding HOD:", error);
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to add HOD.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteFaculty = async (facultyId) => {
-    if (!window.confirm("Are you sure you want to delete this faculty member?"))
-      return;
+  const handleDeleteFaculty = async (facultyId: number) => {
+    if (!window.confirm("Are you sure you want to delete this member?")) return;
     try {
       await deleteFaculty(facultyId);
-      toast({
-        title: "Deleted",
-        description: "Faculty member has been deleted.",
-        variant: "default",
-      });
+      toast({ title: "Deleted", description: "Member removed successfully." });
     } catch (error) {
-      console.error("Error deleting faculty:", error);
       toast({
         title: "Error",
-        description: "Failed to delete faculty. Please try again.",
+        description: "Failed to delete member.",
         variant: "destructive",
       });
     }
   };
 
-  return (
-    <div className="container mx-auto mt-4 p-4">
-      <h1 className="text-2xl font-bold mb-4">Faculty and HOD Management</h1>
-      <div className="flex flex-wrap gap-4 mb-4">
-        <Select value={department} onValueChange={setDepartment}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select Department" />
-          </SelectTrigger>
-          <SelectContent>
-            {departments.map((dep: any) => (
-              <SelectItem key={dep.department_id} value={dep.department_id}>
-                {dep.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+  const openModal = (role: "Faculty" | "HOD") => {
+    setNewUser((prev) => ({ ...prev, role }));
+    setIsAddModalOpen(true);
+  };
 
-        <Input
-          type="text"
-          placeholder="Search by Username"
-          value={searchQuery}
-          onChange={handleSearch}
-          className="w-[200px]"
-        />
-        {user?.role === "HOD" && (
-          <Dialog
-            open={isFacultyModalOpen}
-            onOpenChange={setIsFacultyModalOpen}
-          >
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsFacultyModalOpen(true)}>
-                Add Faculty
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Faculty</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  value={newFaculty.username}
-                  onChange={(e) => handleInputChange(e)}
-                  required
-                />
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={newFaculty.email}
-                  onChange={(e) => handleInputChange(e)}
-                  required
-                />
-                <Input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={newFaculty.password}
-                  onChange={(e) => handleInputChange(e)}
-                  required
-                />
-                <Select
-                  value={newFaculty.department_id}
-                  onValueChange={(value) =>
-                    setNewFaculty((prev) => ({ ...prev, department_id: value }))
-                  }
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dep: any) => (
-                      <SelectItem
-                        key={dep.department_id}
-                        value={dep.department_id}
-                      >
-                        {dep.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end mt-4">
-                <Button onClick={handleAddFaculty}>Add</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-        {user?.role === "Admin" && (
-          <Dialog open={isHODModalOpen} onOpenChange={setIsHODModalOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsHODModalOpen(true)}>Add HOD</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add HOD</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  value={newHOD.username}
-                  onChange={(e) => handleInputChange(e, true)}
-                  required
-                />
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={newHOD.email}
-                  onChange={(e) => handleInputChange(e, true)}
-                  required
-                />
-                <Input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={newHOD.password}
-                  onChange={(e) => handleInputChange(e, true)}
-                  required
-                />
-                <Select
-                  value={newHOD.department_id}
-                  onValueChange={(value) =>
-                    setNewHOD((prev) => ({ ...prev, department_id: value }))
-                  }
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dep: any) => (
-                      <SelectItem
-                        key={dep.department_id}
-                        value={dep.department_id}
-                      >
-                        {dep.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end mt-4">
-                <Button onClick={handleAddHOD}>Add</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
+  // Permission checks
+  const canAddFaculty = user?.role === "HOD" || user?.role === "Admin";
+  const canAddHOD = user?.role === "Admin";
+
+  return (
+    <div className="container mx-auto mt-4 p-4 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Faculty Management
+        </h1>
+        <div className="flex gap-2">
+          {canAddFaculty && (
+            <Button onClick={() => openModal("Faculty")}>
+              <Plus className="mr-2 h-4 w-4" /> Add Faculty
+            </Button>
+          )}
+          {canAddHOD && (
+            <Button variant="secondary" onClick={() => openModal("HOD")}>
+              <Plus className="mr-2 h-4 w-4" /> Add HOD
+            </Button>
+          )}
+        </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Username</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Actions</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Department</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredFaculty.map((member) => (
-            <TableRow key={member.faculty_id}>
-              <TableCell>{member.username}</TableCell>
-              <TableCell>{member.email}</TableCell>
-              <TableCell>{member.role}</TableCell>
-              <TableCell>{member.department}</TableCell>
-              <TableCell>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDeleteFaculty(member.faculty_id)}
+      <div className="flex flex-col sm:flex-row gap-4 bg-card p-4 rounded-lg border shadow-sm">
+        <div className="w-full sm:w-[250px]">
+          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              {departments.map((dep: any) => (
+                <SelectItem
+                  key={dep.department_id}
+                  value={dep.department_id.toString()}
                 >
-                  Delete
-                </Button>
-              </TableCell>
+                  {dep.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="relative w-full sm:w-[300px]">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-md border bg-white shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Username</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  <div className="flex justify-center items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading faculty...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredFaculty.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No faculty members found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredFaculty.map((member) => (
+                <TableRow key={member.faculty_id}>
+                  <TableCell className="font-medium">
+                    {member.username}
+                  </TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        member.role === "HOD"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {member.role}
+                    </span>
+                  </TableCell>
+                  <TableCell>{member.department}</TableCell>
+                  <TableCell className="text-right">
+                    {/* Only Admins or HODs can delete */}
+                    {(user?.role === "Admin" ||
+                      (user?.role === "HOD" && member.role !== "HOD")) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteFaculty(member.faculty_id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Unified Add User Modal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New {newUser.role}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Username</label>
+              <Input
+                name="username"
+                placeholder="e.g. John Doe"
+                value={newUser.username}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input
+                name="email"
+                type="email"
+                placeholder="john@example.com"
+                value={newUser.email}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Password</label>
+              <Input
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                value={newUser.password}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Department</label>
+              <Select
+                value={newUser.department_id}
+                onValueChange={(value) =>
+                  setNewUser((prev) => ({ ...prev, department_id: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map((dep: any) => (
+                    <SelectItem
+                      key={dep.department_id}
+                      value={dep.department_id.toString()}
+                    >
+                      {dep.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button onClick={handleAddUser} disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Add {newUser.role}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

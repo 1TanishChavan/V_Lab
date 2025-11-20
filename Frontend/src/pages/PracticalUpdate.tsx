@@ -4,6 +4,13 @@ import { useCourseStore } from "../store/courseStore";
 import { usePracticalStore } from "../store/practicalStore";
 import api from "../services/api";
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "../components/ui/breadcrumb";
+import {
   Card,
   CardContent,
   CardFooter,
@@ -16,6 +23,7 @@ import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
 import { MultiSelect } from "../components/multi-select";
 import { useToast } from "../components/hooks/use-toast";
+import { Loader2, Slash, Plus, Trash2 } from "lucide-react";
 
 interface TestCase {
   input: string;
@@ -30,11 +38,17 @@ const PracticalUpdate: React.FC = () => {
   }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const course = useCourseStore((state) =>
-    state.courses.find((c) => c.course_id.toString() === courseId)
-  );
+
+  // Stores
+  const { courses } = useCourseStore(); // We fetch course manually to ensure data exists
   const { updatePractical } = usePracticalStore();
 
+  // Local State
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [courseName, setCourseName] = useState("");
+
+  // Form State
   const [srNo, setSrNo] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -42,67 +56,81 @@ const PracticalUpdate: React.FC = () => {
   const [programmingLanguages, setProgrammingLanguages] = useState<string[]>(
     []
   );
-  const [testCases, setTestCases] = useState<TestCase[]>([
-    { input: "", output: "", isPublic: false },
-  ]);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [languageOptions, setLanguageOptions] = useState<
     { value: string; label: string }[]
   >([]);
 
+  // Unified Data Loading
   useEffect(() => {
-    const fetchPracticalData = async () => {
+    const loadData = async () => {
+      setIsLoading(true);
       try {
-        const response = await api.get(`/practicals/${practicalId}`);
-        const practical = response.data;
+        // Parallel Fetch: Course, Practical, Languages
+        const [courseRes, practicalRes, langRes] = await Promise.all([
+          api.get(`/courses/${courseId}`),
+          api.get(`/practicals/${practicalId}`),
+          api.get("/programming-languages"),
+        ]);
 
-        setSrNo(practical.sr_no.toString());
-        setTitle(practical.practical_name);
-        setDescription(practical.description);
-        setPdfUrl(practical.pdf_url || "");
-        setProgrammingLanguages(
-          practical.prac_language.map((lang: any) =>
-            lang.programming_language_id.toString()
-          )
-        );
-        setTestCases(
-          practical.prac_io.map((io: any) => ({
-            input: io.input,
-            output: io.output,
-            isPublic: io.isPublic,
-          }))
-        );
-      } catch (error) {
-        console.error("Failed to fetch practical details:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch practical details",
-          variant: "destructive",
-        });
-      }
-    };
+        // 1. Set Course Name
+        const courseData = Array.isArray(courseRes.data)
+          ? courseRes.data[0]
+          : courseRes.data;
+        setCourseName(courseData?.course_name || "");
 
-    const fetchLanguages = async () => {
-      try {
-        const response = await api.get("/programming-languages");
+        // 2. Set Language Options
         setLanguageOptions(
-          response.data.map((lang: any) => ({
+          langRes.data.map((lang: any) => ({
             value: lang.programming_language_id.toString(),
             label: lang.language_name,
           }))
         );
+
+        // 3. Populate Form with Practical Data
+        const practical = practicalRes.data;
+        setSrNo(practical.sr_no.toString());
+        setTitle(practical.practical_name);
+        setDescription(practical.description);
+        setPdfUrl(practical.pdf_url || "");
+
+        // Map Languages
+        if (practical.prac_language) {
+          setProgrammingLanguages(
+            practical.prac_language.map((lang: any) =>
+              lang.programming_language_id.toString()
+            )
+          );
+        }
+
+        // Map Test Cases
+        if (practical.prac_io) {
+          setTestCases(
+            practical.prac_io.map((io: any) => ({
+              input: io.input,
+              output: io.output,
+              isPublic: Boolean(io.isPublic), // Ensure boolean
+            }))
+          );
+        } else {
+          setTestCases([{ input: "", output: "", isPublic: false }]);
+        }
       } catch (error) {
-        console.error("Failed to fetch programming languages:", error);
+        console.error("Failed to load practical data:", error);
         toast({
           title: "Error",
-          description: "Failed to fetch programming languages",
+          description: "Failed to fetch practical details. Please refresh.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchPracticalData();
-    fetchLanguages();
-  }, [practicalId, toast]);
+    if (courseId && practicalId) {
+      loadData();
+    }
+  }, [courseId, practicalId]);
 
   const handleTestCaseChange = (
     index: number,
@@ -125,6 +153,16 @@ const PracticalUpdate: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!srNo || !title) {
+      toast({
+        title: "Error",
+        description: "Please fill in required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       await updatePractical(parseInt(practicalId!), {
         sr_no: parseInt(srNo),
@@ -150,77 +188,160 @@ const PracticalUpdate: React.FC = () => {
         description: "Failed to update practical",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">{course?.course_name}</h1>
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/courses">Courses</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbLink href={`/practicals/${courseId}`}>
+              {courseName || "Course"}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbLink>Update Practical</BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <h1 className="text-3xl font-bold mb-6">Update Practical</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Update Practical</CardTitle>
+            <CardTitle>Basic Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              placeholder="Sr No"
-              type="number"
-              value={srNo}
-              onChange={(e) => setSrNo(e.target.value)}
-              required
-            />
-            <Input
-              placeholder="Title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            <Textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-            <Input
-              type="text"
-              placeholder="PDF URL"
-              value={pdfUrl}
-              onChange={(e) => setPdfUrl(e.target.value)}
-            />
-            <MultiSelect
-              placeholder="Programming Languages"
-              options={languageOptions}
-              onValueChange={setProgrammingLanguages}
-              defaultValue={programmingLanguages}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-1">
+                <label className="text-sm font-medium mb-1 block">Sr No</label>
+                <Input
+                  placeholder="Sr No"
+                  type="number"
+                  value={srNo}
+                  onChange={(e) => setSrNo(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className="text-sm font-medium mb-1 block">Title</label>
+                <Input
+                  placeholder="Title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Description
+              </label>
+              <Textarea
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">PDF URL</label>
+              <Input
+                type="text"
+                placeholder="PDF URL"
+                value={pdfUrl}
+                onChange={(e) => setPdfUrl(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Languages
+              </label>
+              <MultiSelect
+                placeholder="Programming Languages"
+                options={languageOptions}
+                onValueChange={setProgrammingLanguages}
+                defaultValue={programmingLanguages}
+              />
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Test Cases</CardTitle>
+            <Button
+              type="button"
+              onClick={addTestCase}
+              variant="outline"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add Test Case
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {testCases.map((testCase, index) => (
-              <Card key={index}>
-                <CardContent className="space-y-2">
-                  <Textarea
-                    placeholder="Input"
-                    value={testCase.input}
-                    onChange={(e) =>
-                      handleTestCaseChange(index, "input", e.target.value)
-                    }
-                  />
-                  <Textarea
-                    placeholder="Output"
-                    value={testCase.output}
-                    onChange={(e) =>
-                      handleTestCaseChange(index, "output", e.target.value)
-                    }
-                    required
-                  />
+              <div
+                key={index}
+                className="relative p-4 border rounded-lg bg-card/50"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="text-xs font-medium uppercase text-muted-foreground mb-1 block">
+                      Input
+                    </label>
+                    <Textarea
+                      placeholder="Input"
+                      value={testCase.input}
+                      onChange={(e) =>
+                        handleTestCaseChange(index, "input", e.target.value)
+                      }
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium uppercase text-muted-foreground mb-1 block">
+                      Output
+                    </label>
+                    <Textarea
+                      placeholder="Output"
+                      value={testCase.output}
+                      onChange={(e) =>
+                        handleTestCaseChange(index, "output", e.target.value)
+                      }
+                      required
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`public-${index}`}
@@ -233,28 +354,36 @@ const PracticalUpdate: React.FC = () => {
                         )
                       }
                     />
-                    <label htmlFor={`public-${index}`}>Public test case</label>
+                    <label
+                      htmlFor={`public-${index}`}
+                      className="text-sm font-medium leading-none"
+                    >
+                      Public test case
+                    </label>
                   </div>
-                  {index > 0 && (
+                  {testCases.length > 1 && (
                     <Button
-                      variant="destructive"
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => removeTestCase(index)}
                     >
-                      Remove Test Case
+                      <Trash2 className="h-4 w-4 mr-2" /> Remove
                     </Button>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </CardContent>
-          <CardFooter>
-            <Button type="button" onClick={addTestCase} variant="outline">
-              Add Test Case
-            </Button>
-          </CardFooter>
         </Card>
 
-        <Button type="submit">Update Practical</Button>
+        <div className="flex justify-end">
+          <Button type="submit" size="lg" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Update Practical
+          </Button>
+        </div>
       </form>
     </div>
   );

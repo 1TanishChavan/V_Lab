@@ -67,7 +67,6 @@ const useFacultyStore = create<FacultyStoreState>((set) => ({
   },
 
   // Delete a faculty member
-  // Delete a faculty member
   deleteFaculty: async (facultyId) => {
     set({ isLoading: true, error: null });
     try {

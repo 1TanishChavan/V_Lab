@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom"; // Added Link for breadcrumbs
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
@@ -10,7 +10,6 @@ import {
   BreadcrumbSeparator,
   BreadcrumbLink,
 } from "@/components/ui/breadcrumb";
-import { Slash } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -31,30 +30,50 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Toaster } from "@/components/ui/toaster";
-import { Loader2 } from "lucide-react";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Define types for better safety
+interface PracticalDetails {
+  course_name: string;
+  practical_name: string;
+  description: string;
+  sr_no: number;
+  semester: number;
+  prac_io: { input: string; output: string; isPublic: boolean }[];
+}
+
+interface Language {
+  programming_language_id: number;
+  language_name: string;
+}
 
 const CodingEnvironmentPage = () => {
   const { courseId, practicalId } = useParams();
-  const [courseName, setCourseName] = useState("");
-  const [practicalName, setPracticalName] = useState("");
-  const [testCases, setTestCases] = useState([]);
-  const [description, setDescription] = useState("");
-  const [language, setLanguage] = useState("");
-  const [languages, setLanguages] = useState([]);
-  const [code, setCode] = useState("");
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const [submissionStatus, setSubmissionStatus] = useState(null);
+
+  // 1. Consolidated Page State
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [details, setDetails] = useState<PracticalDetails | null>(null);
+  const [languages, setLanguages] = useState<Language[]>([]);
+
+  // 2. Editor State
+  const [language, setLanguage] = useState("");
+  const [code, setCode] = useState("");
   const [customInput, setCustomInput] = useState("");
-  const [runOutput, setRunOutput] = useState(null);
+
+  // 3. Execution/Submission State
+  const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
+  const [showSubmissionStatus, setShowSubmissionStatus] = useState(false);
+  const [runOutput, setRunOutput] = useState<{
+    time: string;
+    memory: number;
+    output: string;
+  } | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionResults, setSubmissionResults] = useState(null);
-  const [showSubmissionStatus, setShowSubmissionStatus] = useState(false);
-  const [semester, setSemester] = useState("");
-  const [srNo, setSrNo] = useState("");
+
   const [previousSubmission, setPreviousSubmission] = useState<{
     code?: string;
     status?: string;
@@ -63,130 +82,81 @@ const CodingEnvironmentPage = () => {
     submission_time: any;
   } | null>(null);
 
-  // Maximum number of polling attempts and interval
   const MAX_POLL_ATTEMPTS = 10;
   const POLL_INTERVAL = 8000;
 
+  // Unified Data Fetching
   useEffect(() => {
-    const fetchPracticalDetails = async () => {
+    const loadPageData = async () => {
+      setIsPageLoading(true);
       try {
-        const response = await api.get(`/practicals/${practicalId}`);
-        const {
-          course_name,
-          practical_name,
-          description,
-          prac_io,
-          sr_no,
-          semester,
-        } = response.data;
-        setCourseName(course_name);
-        setPracticalName(practical_name);
-        setDescription(description);
-        setSrNo(sr_no);
-        setSemester(semester);
-        setTestCases(prac_io.filter((io) => io.isPublic));
-        const prevSubmissionResponse = await api.get(
-          `/submissions/previous/${practicalId}`
-        );
-        if (prevSubmissionResponse.data?.code) {
-          const submission = prevSubmissionResponse.data;
-          setPreviousSubmission(submission);
-          if (submission.status !== "Accepted") {
-            setCode(submission.code);
+        // Parallel fetch for independent data
+        const [detailsRes, languagesRes, prevSubRes] = await Promise.all([
+          api.get(`/practicals/${practicalId}`),
+          api.get(`/practicals/${practicalId}/languages`),
+          api
+            .get(`/submissions/previous/${practicalId}`)
+            .catch(() => ({ data: null })), // Allow this to fail/return null without blocking page
+        ]);
+
+        // 1. Set Details
+        setDetails(detailsRes.data);
+
+        // 2. Set Languages & Default Selection
+        const fetchedLangs = languagesRes.data || [];
+        setLanguages(fetchedLangs);
+
+        // 3. Handle Previous Submission (Logic moved here to prevent race conditions with language setting)
+        let initialCode = "";
+        let initialLanguage =
+          fetchedLangs.length > 0
+            ? fetchedLangs[0].programming_language_id.toString()
+            : "";
+
+        if (prevSubRes.data && prevSubRes.data.code) {
+          const sub = prevSubRes.data;
+          setPreviousSubmission(sub);
+          initialCode = sub.code;
+
+          // If we had a previous submission, we should try to match the language if stored (optional, backend might not send lang id back)
+          // For now, we stick to default or previous logic.
+
+          if (sub.status) {
+            setSubmissionStatus(sub.status);
+            setShowSubmissionStatus(true);
           }
-        }
-        if (
-          prevSubmissionResponse.data?.message ===
-          "No previous submission found"
+        } else if (
+          prevSubRes.data?.message === "No previous submission found"
         ) {
           toast({
             title: "Information",
-            description: "You have not before submitted",
+            description: "Start your first submission!",
             variant: "default",
           });
         }
+
+        setCode(initialCode);
+        setLanguage(initialLanguage);
       } catch (error) {
+        console.error(error);
         toast({
           title: "Error",
-          description: "Failed to fetch practical details",
+          description: "Failed to load practical data. Please refresh.",
           variant: "destructive",
         });
+      } finally {
+        setIsPageLoading(false);
       }
     };
 
-    const fetchLanguages = async () => {
-      try {
-        const response = await api.get(`/practicals/${practicalId}/languages`);
-        const fetchedLanguages = response.data || []; // Ensure it is an array
+    if (practicalId) {
+      loadPageData();
+    }
+  }, [practicalId]); // Removed toast dependency to avoid lint warnings
 
-        setLanguages(fetchedLanguages);
-        if (fetchedLanguages.length > 0) {
-          setLanguage(
-            fetchedLanguages[0].programming_language_id?.toString() || ""
-          );
-        }
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to fetch practical languages",
-          variant: "destructive",
-        });
-      }
-    };
-
-    fetchPracticalDetails();
-    fetchLanguages();
-  }, [practicalId]);
-
-  // const pollSubmissionStatus = async (submissionId) => {
-  //   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-  //     try {
-  //       const response = await api.get(`/submissions/${submissionId}/status`);
-  //       const { status, completed, results } = response.data;
-
-  //       if (completed) {
-  //         setSubmissionStatus(status);
-  //         setSubmissionResults(results);
-  //         return;
-  //       }
-
-  //       // Update partial results
-  //       if (results) {
-  //         setSubmissionResults(results);
-  //       }
-
-  //       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
-  //     } catch (error) {
-  //       console.error("Error polling submission status:", error);
-
-  //       if (error.response && error.response.status === 404) {
-  //         setSubmissionStatus("Not Found");
-  //         toast({
-  //           title: "Error",
-  //           description: "Submission not found. Please try submitting again.",
-  //           variant: "destructive",
-  //         });
-  //         return;
-  //       }
-
-  //       // For other errors, continue polling
-  //       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
-  //     }
-  //   }
-
-  //   setSubmissionStatus("Timeout");
-  //   toast({
-  //     title: "Timeout",
-  //     description:
-  //       "Submission processing took too long. Please try again later.",
-  //     variant: "destructive",
-  //   });
-  // };
-
-  const pollSubmissionStatus = async (submissionId) => {
+  const pollSubmissionStatus = async (submissionId: any) => {
     try {
       let attempts = 0;
-
       while (attempts < MAX_POLL_ATTEMPTS) {
         const response = await api.get(
           `/submissions/${
@@ -205,7 +175,6 @@ const CodingEnvironmentPage = () => {
         attempts++;
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
       }
-
       throw new Error("Polling timeout");
     } catch (error) {
       toast({
@@ -221,24 +190,23 @@ const CodingEnvironmentPage = () => {
     if (!user) {
       toast({
         title: "Error",
-        description: "You must be logged in to submit code.",
+        description: "Login required.",
         variant: "destructive",
       });
       return;
     }
-
     if (!code.trim()) {
       toast({
         title: "Error",
-        description: "Please write some code before submitting.",
+        description: "Code cannot be empty.",
         variant: "destructive",
       });
       return;
     }
     if (previousSubmission?.status === "Accepted") {
       toast({
-        title: "Already Submitted",
-        description: "You have already submitted this practical successfully.",
+        title: "Completed",
+        description: "This practical is already accepted.",
         variant: "default",
       });
       return;
@@ -254,7 +222,7 @@ const CodingEnvironmentPage = () => {
         language,
         code,
         studentId: user.user_id,
-        submissionId: previousSubmission?.submission_id || -1, // Send previous submission ID if exists
+        submissionId: previousSubmission?.submission_id || -1,
       });
 
       const status = await pollSubmissionStatus(response.data.submissionId);
@@ -265,28 +233,29 @@ const CodingEnvironmentPage = () => {
           status: status,
           code: code,
           submission_id: response.data.submissionId,
+          submission_time: new Date(),
         }));
 
         toast({
-          title: status === "Accepted" ? "Success" : "Not Accepted",
+          title: status === "Accepted" ? "Success" : "Result",
           description:
             status === "Accepted"
-              ? "Your submission has been accepted!"
-              : "Your submission was not accepted. Please try again.",
+              ? "Submission Accepted!"
+              : "Submission Rejected.",
           variant: status === "Accepted" ? "default" : "destructive",
         });
       }
     } catch (error: any) {
       if (error.response?.status === 429) {
         toast({
-          title: "Rate Limited",
-          description: "Please wait 30 seconds before submitting again.",
+          title: "Rate Limit",
+          description: "Please wait before submitting again.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Error",
-          description: error.response?.data?.message || "Failed to submit code",
+          description: "Failed to submit code.",
           variant: "destructive",
         });
       }
@@ -294,11 +263,12 @@ const CodingEnvironmentPage = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleRun = async () => {
     if (!code.trim()) {
       toast({
         title: "Error",
-        description: "Please write some code before running.",
+        description: "Code cannot be empty.",
         variant: "destructive",
       });
       return;
@@ -312,7 +282,7 @@ const CodingEnvironmentPage = () => {
         code,
         language: parseInt(language, 10),
         input: customInput,
-        userId: user.user_id,
+        userId: user?.user_id,
       });
 
       setRunOutput({
@@ -324,14 +294,14 @@ const CodingEnvironmentPage = () => {
     } catch (error: any) {
       if (error.response?.status === 429) {
         toast({
-          title: "Rate Limited",
-          description: "Please wait before running code again.",
+          title: "Rate Limit",
+          description: "Please wait before running again.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Error",
-          description: error.response?.data?.message || "Failed to run code",
+          description: "Failed to run code.",
           variant: "destructive",
         });
       }
@@ -340,389 +310,262 @@ const CodingEnvironmentPage = () => {
     }
   };
 
-  const getLanguageName = (languageId) => {
-    const selectedLanguage = languages.find(
-      (lang) => lang.programming_language_id?.toString() === languageId
+  const getLanguageName = (languageId: string) => {
+    return (
+      languages.find(
+        (lang) => lang.programming_language_id.toString() === languageId
+      )?.language_name || ""
     );
-    return selectedLanguage?.language_name || "";
   };
 
-  // return (
-  //   <div className="container mx-auto p-4 space-y-4">
+  if (isPageLoading || !details) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading Environment...</p>
+        </div>
+      </div>
+    );
+  }
 
-  //     <h1 className="text-2xl font-bold mb-4">{courseName}</h1>
-  //     <h2 className="text-xl font-semibold mb-4">{practicalName}</h2>
+  const publicTestCases = details.prac_io.filter((io) => io.isPublic);
 
-  //     <Card className="mb-4">
-  //       <CardHeader>
-  //         <CardTitle>Description</CardTitle>
-  //       </CardHeader>
-  //       <CardContent>
-  //         <p>{description}</p>
-  //       </CardContent>
-  //     </Card>
-
-  //     <Card className="mb-4">
-  //       <CardHeader>
-  //         <CardTitle>Public Test Cases</CardTitle>
-  //       </CardHeader>
-  //       <CardContent>
-  //         {testCases.map((testCase, index) => (
-  //           <div key={index} className="mb-2">
-  //             <CardDescription>Input: {testCase.input}</CardDescription>
-  //             <CardDescription>Output: {testCase.output}</CardDescription>
-  //           </div>
-  //         ))}
-  //       </CardContent>
-  //     </Card>
-
-  //     <div className="flex items-center gap-4 mb-4">
-  //       <Select
-  //         value={language}
-  //         onValueChange={(value) => {
-  //           console.log("Selected language:", value); // Debug log
-  //           setLanguage(value);
-  //         }}
-  //       >
-  //         <SelectTrigger className="w-[180px]">
-  //           <SelectValue placeholder="Select language">
-  //             {getLanguageName(language) || "Select language"}
-  //           </SelectValue>
-  //         </SelectTrigger>
-  //         <SelectContent>
-  //           <SelectGroup>
-  //             <SelectLabel>Languages</SelectLabel>
-  //             {languages.map((lang) => (
-  //               <SelectItem
-  //                 key={lang.programming_language?.programming_language_id}
-  //                 value={lang.programming_language?.programming_language_id?.toString()}
-  //               >
-  //                 {lang.programming_language?.language_name ||
-  //                   "Unknown Language"}
-  //               </SelectItem>
-  //             ))}
-  //           </SelectGroup>
-  //         </SelectContent>
-  //       </Select>
-
-  //       <Button
-  //         onClick={handleSubmit}
-  //         disabled={isSubmitting}
-  //         className="flex-1"
-  //       >
-  //         {isSubmitting ? (
-  //           <>
-  //             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-  //             Submitting...
-  //           </>
-  //         ) : (
-  //           "Submit"
-  //         )}
-  //       </Button>
-  //       <Button
-  //         onClick={handleRun}
-  //         variant="outline"
-  //         disabled={isRunning}
-  //         className="flex-1"
-  //       >
-  //         {isRunning ? (
-  //           <>
-  //             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-  //             Running...
-  //           </>
-  //         ) : (
-  //           "Run"
-  //         )}
-  //       </Button>
-  //     </div>
-
-  //     {showSubmissionStatus && submissionStatus && (
-  //       <Card className="mb-4">
-  //         <CardHeader className="flex flex-row items-center justify-between ">
-  //           <CardTitle>Submission Status</CardTitle>
-  //           <Button
-  //             variant="ghost"
-  //             size="icon"
-  //             onClick={() => setShowSubmissionStatus(false)}
-  //           >
-  //             <X className="h-4 w-4" />
-  //           </Button>
-  //         </CardHeader>
-  //         <CardContent>
-  //           <div
-  //             className={`text-lg font-semibold ${
-  //               submissionStatus === "Accepted"
-  //                 ? "text-green-600"
-  //                 : "text-red-600"
-  //             }`}
-  //           >
-  //             {submissionStatus}
-  //           </div>
-  //         </CardContent>
-  //       </Card>
-  //     )}
-
-  //     <Editor
-  //       height="400px"
-  //       language={getLanguageName(language).toLowerCase()}
-  //       value={code}
-  //       onChange={setCode}
-  //       theme="vs-dark"
-  //       options={{
-  //         minimap: { enabled: false },
-  //         fontSize: 14,
-  //         lineNumbers: "on",
-  //         rulers: [],
-  //         wordWrap: "on",
-  //         wrappingIndent: "indent",
-  //         automaticLayout: true,
-  //       }}
-  //     />
-
-  //     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-  //       <div>
-  //         <Card>
-  //           <CardHeader>
-  //             <CardTitle>Custom Input</CardTitle>
-  //             <CardDescription>Enter input to test your code</CardDescription>
-  //           </CardHeader>
-  //           <CardContent>
-  //             <Textarea
-  //               value={customInput}
-  //               onChange={(e) => setCustomInput(e.target.value)}
-  //               placeholder="Enter your input here..."
-  //               className="font-mono h-32"
-  //             />
-  //           </CardContent>
-  //         </Card>
-  //       </div>
-
-  //       <div>
-  //         {runOutput && (
-  //           <Card>
-  //             <CardHeader>
-  //               <CardTitle>Run Output</CardTitle>
-  //               <CardDescription>
-  //                 Time: {runOutput.time}s | Memory:{" "}
-  //                 {Math.round(runOutput.memory / 1024)} MB
-  //               </CardDescription>
-  //             </CardHeader>
-  //             <CardContent>
-  //               <div className="bg-slate-100 p-4 rounded-md">
-  //                 <pre className="whitespace-pre-wrap font-mono text-sm">
-  //                   {runOutput.output}
-  //                 </pre>
-  //               </div>
-  //             </CardContent>
-  //           </Card>
-  //         )}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
   return (
-    <div className="container">
+    <div className="container mx-auto p-4 space-y-4">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            <Link to="/" className="hover:text-foreground transition-colors">
+              Home
+            </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/semester/${semester}`}>
-              Semester {semester}
-            </BreadcrumbLink>
+            <span className="font-normal">Semester {details.semester}</span>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/course/${courseId}`}>
-              {courseName}
-            </BreadcrumbLink>
+            <Link
+              to={`/course/${courseId}`}
+              className="hover:text-foreground transition-colors"
+            >
+              {details.course_name}
+            </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink>Practical {srNo}</BreadcrumbLink>
+            <span className="font-medium text-foreground">
+              Practical {details.sr_no}
+            </span>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="mx-auto p-4 space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold mb-4">{practicalName}</h2>
 
-            <Card className="mb-4">
-              <CardHeader>
-                <CardTitle>Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap">{description}</p>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left Column: Description */}
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-2xl font-bold">{details.practical_name}</h2>
+          <Card>
+            <CardHeader>
+              <CardTitle>Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="whitespace-pre-wrap leading-relaxed">
+                {details.description}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-          <div className="lg:col-span-1">
-            <Card className="mb-4">
-              <CardHeader>
-                <CardTitle>Public Test Cases</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {testCases.map((testCase, index) => (
-                    <div key={index} className="p-4 bg-muted rounded-lg">
-                      <CardDescription className="mb-2">
-                        <span className="font-semibold">Input:</span>{" "}
+        {/* Right Column: Test Cases */}
+        <div className="lg:col-span-1">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Public Test Cases</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {publicTestCases.length > 0 ? (
+                publicTestCases.map((testCase, index) => (
+                  <div
+                    key={index}
+                    className="p-3 bg-muted/50 rounded-md border text-sm"
+                  >
+                    <div className="mb-2">
+                      <span className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                        Input
+                      </span>
+                      <div className="font-mono mt-1 bg-background p-2 rounded border">
                         {testCase.input}
-                      </CardDescription>
-                      <CardDescription>
-                        <span className="font-semibold">Output:</span>{" "}
-                        {testCase.output}
-                      </CardDescription>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <div>
+                      <span className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
+                        Expected Output
+                      </span>
+                      <div className="font-mono mt-1 bg-background p-2 rounded border">
+                        {testCase.output}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No public test cases available.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Editor Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-2 rounded-lg border">
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Select language">
+                {getLanguageName(language) || "Select language"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              <SelectGroup>
+                <SelectLabel>Languages</SelectLabel>
+                {languages.map((lang) => (
+                  <SelectItem
+                    key={lang.programming_language_id}
+                    value={lang.programming_language_id.toString()}
+                  >
+                    {lang.language_name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              onClick={handleRun}
+              variant="secondary"
+              disabled={isRunning || isSubmitting}
+              className="flex-1 sm:flex-none min-w-[100px]"
+            >
+              {isRunning ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {isRunning ? "Running..." : "Run"}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting || isRunning}
+              className="flex-1 sm:flex-none min-w-[100px]"
+            >
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Select language">
-                  {getLanguageName(language) || "Select language"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Languages</SelectLabel>
-                  {languages.map((lang) => (
-                    <SelectItem
-                      key={lang.programming_language_id}
-                      value={lang.programming_language_id?.toString()}
-                    >
-                      {lang.language_name || "Unknown Language"}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-
-            <div className="flex gap-2 w-full">
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit"
-                )}
-              </Button>
-              <Button
-                onClick={handleRun}
-                variant="outline"
-                disabled={isRunning}
-                className="flex-1"
-              >
-                {isRunning ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Running...
-                  </>
-                ) : (
-                  "Run"
-                )}
-              </Button>
+        {/* Status Banner */}
+        {showSubmissionStatus && submissionStatus && (
+          <div
+            className={cn(
+              "p-4 rounded-lg border flex items-center justify-between animate-in fade-in slide-in-from-top-2",
+              submissionStatus === "Accepted"
+                ? "bg-green-50 border-green-200 text-green-700"
+                : "bg-red-50 border-red-200 text-red-700"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-semibold">
+                Status: {submissionStatus}
+              </span>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSubmissionStatus(false)}
+              className={cn(
+                "h-8 w-8 p-0 hover:bg-transparent",
+                submissionStatus === "Accepted"
+                  ? "hover:text-green-900"
+                  : "hover:text-red-900"
+              )}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
+        )}
 
-          {showSubmissionStatus && submissionStatus && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle>Submission Status</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowSubmissionStatus(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div
-                  className={cn(
-                    "text-lg font-semibold",
-                    submissionStatus === "Accepted"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  )}
-                >
-                  {submissionStatus}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
+        <div className="border rounded-lg overflow-hidden h-[500px]">
           <Editor
-            height="400px"
-            language={getLanguageName(language).toLowerCase()}
+            height="100%"
+            language={getLanguageName(language).toLowerCase()} // Monaco might need mapping, but usually safe for common langs
             value={code}
-            onChange={setCode}
+            onChange={(val) => setCode(val || "")}
             theme="vs-dark"
             options={{
               minimap: { enabled: false },
               fontSize: 14,
               lineNumbers: "on",
-              rulers: [],
+              scrollBeyondLastLine: false,
               wordWrap: "on",
-              wrappingIndent: "indent",
               automaticLayout: true,
+              padding: { top: 16, bottom: 16 },
             }}
           />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Custom Input</CardTitle>
-                <CardDescription>Enter input to test your code</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  value={customInput}
-                  onChange={(e) => setCustomInput(e.target.value)}
-                  placeholder="Enter your input here..."
-                  className="font-mono h-32"
-                />
-              </CardContent>
-            </Card>
-
-            {runOutput && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Run Output</CardTitle>
-                  <CardDescription>
-                    Time: {runOutput.time}s | Memory:{" "}
-                    {Math.round(runOutput.memory / 1024)} MB
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-slate-100 p-4 rounded-md">
-                    <pre className="whitespace-pre-wrap font-mono text-sm">
-                      {runOutput.output}
-                    </pre>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
         </div>
-        <Toaster />
+
+        {/* Input / Output Area */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                Custom Input
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                placeholder="Enter input for your code..."
+                className="font-mono min-h-[150px] resize-none"
+              />
+            </CardContent>
+          </Card>
+
+          <Card
+            className={cn("transition-colors", runOutput ? "bg-slate-50" : "")}
+          >
+            <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                Output
+              </CardTitle>
+              {runOutput && (
+                <span className="text-xs text-muted-foreground font-mono">
+                  {runOutput.time}s | {Math.round(runOutput.memory / 1024)} MB
+                </span>
+              )}
+            </CardHeader>
+            <CardContent>
+              {runOutput ? (
+                <div className="bg-background p-3 rounded-md border min-h-[150px] overflow-auto max-h-[300px]">
+                  <pre className="whitespace-pre-wrap font-mono text-sm">
+                    {runOutput.output}
+                  </pre>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center min-h-[150px] text-muted-foreground text-sm border-2 border-dashed rounded-md">
+                  Run code to see output
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
+      <Toaster />
     </div>
   );
 };

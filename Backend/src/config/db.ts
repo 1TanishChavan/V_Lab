@@ -1,9 +1,7 @@
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "./../../src/models/schema";
 import "dotenv/config";
-
-// --- THIS IS THE FIX ---
 
 // 1. Get all your variables
 const {
@@ -31,15 +29,12 @@ if (isNaN(port)) {
     throw new Error("Invalid MYSQL_PORT: Must be a number.");
 }
 
-// --- End of Fix ---
-
-// Now, all variables are guaranteed to be strings (or a number for port)
 export const poolConnection = mysql.createPool({
     host: MYSQL_HOST,
     user: MYSQL_USER,
     password: MYSQL_PASSWORD,
     database: MYSQL_DATABASE,
-    port: port, // Use the validated, parsed port
+    port: port,
 
     connectionLimit: 1,
     // ssl: {
@@ -48,4 +43,7 @@ export const poolConnection = mysql.createPool({
 });
 
 // @ts-ignore
-export const db = drizzle(poolConnection, { schema, mode: "default" });
+export const db: MySql2Database<typeof schema> = drizzle(poolConnection, {
+    schema,
+    mode: "default"
+});

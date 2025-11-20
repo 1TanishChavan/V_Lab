@@ -49,41 +49,6 @@ export async function createFaculty({
     }
 }
 
-// // Fetch faculty by department (if departmentId is passed)
-// export async function getFacultyByDepartment(departmentId: number) {
-//     return await db.select({
-//         user_id: faculty.faculty_id,
-//         department_id: faculty.department_id,
-//         username: users.username,
-//         email: users.email
-//     }).from(users)
-//         .innerJoin(faculty, eq(users.user_id, faculty.faculty_id))
-//         .where(eq(faculty.department_id, departmentId));
-// }
-// // Fetch all faculty members
-// export async function getAllFaculty() {
-//     try {
-//         const facultyMembers = await db
-//             .select({
-//                 faculty_id: faculty.faculty_id,
-//                 department_id: faculty.department_id,
-//                 username: users.username,
-//                 email: users.email,
-//             })
-//             .from(users)
-//             .innerJoin(faculty, eq(users.user_id, faculty.faculty_id));
-
-// //         if (!facultyMembers.length) {
-// //             throw new AppError(404, 'No faculty members found');
-// //         }
-
-//         return facultyMembers;
-//     } catch (error) {
-//         console.error("Error fetching all faculty:", error);
-//         throw new AppError(500, 'Failed to fetch faculty');
-//     }
-// }
-
 // Fetch faculty batches
 export async function getFacultyBatches(facultyId: number) {
     try {
@@ -92,10 +57,12 @@ export async function getFacultyBatches(facultyId: number) {
                 batch_id: batch.batch_id,
                 division: batch.division,
                 batch_name: batch.batch,
+                semester: batch.semester, // Added semester to selection
             })
             .from(batch)
             .innerJoin(courses_faculty, eq(batch.batch_id, courses_faculty.batch_id))
-            .where(eq(courses_faculty.faculty_id, facultyId));
+            .where(eq(courses_faculty.faculty_id, facultyId))
+            .groupBy(batch.batch_id);
 
         return facultyBatches;
     } catch (error: any) {

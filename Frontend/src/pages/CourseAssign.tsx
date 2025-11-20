@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useCourseStore } from "../store/courseStore";
 import { useDepartmentStore } from "../store/departmentStore";
-import { useAuthStore } from "../store/authStore";
-import { getBatchesByDepartmentAndSemeter } from "@/services/api";
+// Removed unused authStore import
+// import { useAuthStore } from "../store/authStore";
+import { getBatchesByDepartmentAndSemeter } from "@/services/api"; // Ensure this path is correct
 import api from "../services/api";
-import { ChevronDown, Slash } from "lucide-react";
+import { ChevronDown, Slash, Loader2 } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -61,6 +62,9 @@ interface Assignment {
 const CourseAssign: React.FC = () => {
   const navigate = useNavigate();
   const { courseId } = useParams<{ courseId: string }>();
+
+  // State
+  const [isLoading, setIsLoading] = useState(true);
   const [facultyList, setFacultyList] = useState<Faculty[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [assignments, setAssignments] = useState<{ [key: string]: number }>({});
@@ -69,36 +73,66 @@ const CourseAssign: React.FC = () => {
   }>({});
   const [coursesByDepartment, setCoursesByDepartment] = useState<any[]>([]);
 
-  const course = useCourseStore((state) =>
-    state.courses.find((c) => c.course_id.toString() === courseId)
-  );
-  const department = useDepartmentStore((state) =>
-    state.departments.find((d) => d.department_id === course?.department_id)
-  );
-  const user = useAuthStore((state) => state.user);
+  // Stores
+  const { courses, fetchCoursesById } = useCourseStore();
+  const { departments, fetchDepartments } = useDepartmentStore();
 
+  // Derived Data
+  const course = courses.find((c) => c.course_id.toString() === courseId);
+  const department = departments.find(
+    (d) => d.department_id === course?.department_id
+  );
+
+  // 1. Initial Data Load (Course & Departments)
+  useEffect(() => {
+    if (courseId) {
+      if (!course) {
+        fetchCoursesById(parseInt(courseId));
+      }
+      if (departments.length === 0) {
+        fetchDepartments();
+      }
+    }
+  }, [
+    courseId,
+    course,
+    departments.length,
+    fetchCoursesById,
+    fetchDepartments,
+  ]);
+
+  // 2. Fetch Table Data (Parallelized)
   useEffect(() => {
     const fetchData = async () => {
-      if (course && user?.department_id) {
+      if (course && course.department_id) {
+        setIsLoading(true);
         try {
-          // Fetch faculty list
-          const facultyResponse = await api.get<Faculty[]>(
-            `/faculty/department2/${course.department_id}`
-          );
-          setFacultyList(facultyResponse.data);
+          // Execute all requests in parallel for faster loading
+          const [facultyRes, batchesRes, assignmentsRes, coursesRes] =
+            await Promise.all([
+              // 1. Faculty List
+              api.get<Faculty[]>(
+                `/faculty/department2/${course.department_id}`
+              ),
 
-          // Fetch batches for the department and semester
-          const batchResponse = await getBatchesByDepartmentAndSemeter(
-            course.department_id,
-            course.semester
-          );
-          setBatches(batchResponse.data);
+              // 2. Batches
+              getBatchesByDepartmentAndSemeter(
+                course.department_id,
+                course.semester
+              ).catch(() => ({ data: [] })), // Fallback to empty if fails
 
-          // Fetch existing faculty assignments
-          const assignmentsResponse = await api.get<Assignment[]>(
-            `/course-faculty/${courseId}`
-          );
-          const assignmentsMap = assignmentsResponse.data.reduce(
+              // 3. Existing Assignments
+              api.get<Assignment[]>(`/course-faculty/${courseId}`),
+
+              // 4. Other Courses (for dropdown navigation)
+              api.get(`/courses/department/${course.department_id}`),
+            ]);
+
+          setFacultyList(facultyRes.data);
+          setBatches(batchesRes.data);
+
+          // Process Assignments
+          const assignmentsMap = assignmentsRes.data.reduce(
             (acc, assignment) => {
               acc[`${assignment.batch_id}`] = assignment.faculty_id;
               return acc;
@@ -107,28 +141,25 @@ const CourseAssign: React.FC = () => {
           );
           setAssignments(assignmentsMap);
 
-          // Fetch courses for the department and semester
-          const coursesResponse = await api.get(
-            `/courses/department/${course.department_id}`
-            // `/semester/${course.semester}/department/${course.department_id}`
-          );
+          // Process Courses
           setCoursesByDepartment(
-            coursesResponse.data.filter(
-              (c: any) => c.semester === course.semester
-            )
+            coursesRes.data.filter((c: any) => c.semester === course.semester)
           );
         } catch (error) {
           console.error("Failed to fetch data:", error);
           toast({
             title: "Error",
-            description: "Failed to fetch data. Please try again.",
+            description: "Failed to load assignment data.",
             variant: "destructive",
           });
+        } finally {
+          setIsLoading(false);
         }
       }
     };
+
     fetchData();
-  }, [courseId, course, user]);
+  }, [courseId, course]); // Runs when course details are ready
 
   const handleFacultySelect = (batchId: number, facultyId: string) => {
     setSelectedFaculty((prev) => ({
@@ -163,6 +194,7 @@ const CourseAssign: React.FC = () => {
         });
       }
 
+      // Update local state to reflect change immediately
       setAssignments((prev) => ({
         ...prev,
         [batchId.toString()]: facultyId,
@@ -193,8 +225,16 @@ const CourseAssign: React.FC = () => {
     navigate(`/course-assign/${courseId}`);
   };
 
+  // Initial Loading State (Course/Dept not ready)
   if (!course || !department) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading Course...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -221,26 +261,30 @@ const CourseAssign: React.FC = () => {
           </BreadcrumbSeparator>
           <BreadcrumbItem>
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1">
+              <DropdownMenuTrigger className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors">
                 {course.course_name}
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {coursesByDepartment.map((course) => (
-                  <DropdownMenuItem
-                    key={course.course_id}
-                    onClick={() => handleCourseSelect(course.course_id)}
-                  >
-                    {course.course_name}
-                  </DropdownMenuItem>
-                ))}
+                {coursesByDepartment.length > 0 ? (
+                  coursesByDepartment.map((c) => (
+                    <DropdownMenuItem
+                      key={c.course_id}
+                      onClick={() => handleCourseSelect(c.course_id)}
+                    >
+                      {c.course_name}
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem disabled>No other courses</DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -251,50 +295,70 @@ const CourseAssign: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {batches.map((batch) => (
-              <TableRow key={batch.batch_id}>
-                <TableCell>{batch.division}</TableCell>
-                <TableCell>{batch.batch}</TableCell>
-                <TableCell className="w-1/3">
-                  <Select
-                    value={selectedFaculty[batch.batch_id]?.toString()}
-                    onValueChange={(value) =>
-                      handleFacultySelect(batch.batch_id, value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          assignments[batch.batch_id]
-                            ? facultyList.find(
-                                (f) => f.user_id === assignments[batch.batch_id]
-                              )?.username
-                            : "Not Assigned"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {facultyList.map((faculty) => (
-                        <SelectItem
-                          key={faculty.user_id}
-                          value={faculty.user_id.toString()}
-                        >
-                          {faculty.username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    onClick={() => handleAssign(batch.batch_id)}
-                    disabled={!selectedFaculty[batch.batch_id]}
-                  >
-                    Assign
-                  </Button>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  <div className="flex justify-center items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading assignments...
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : batches.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No batches found for this semester.
+                </TableCell>
+              </TableRow>
+            ) : (
+              batches.map((batch) => (
+                <TableRow key={batch.batch_id}>
+                  <TableCell className="font-medium">
+                    {batch.division}
+                  </TableCell>
+                  <TableCell>{batch.batch}</TableCell>
+                  <TableCell className="w-1/3">
+                    <Select
+                      value={
+                        selectedFaculty[batch.batch_id]?.toString() ||
+                        (assignments[batch.batch_id]
+                          ? assignments[batch.batch_id].toString()
+                          : "")
+                      }
+                      onValueChange={(value) =>
+                        handleFacultySelect(batch.batch_id, value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Faculty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {facultyList.map((faculty) => (
+                          <SelectItem
+                            key={faculty.user_id}
+                            value={faculty.user_id.toString()}
+                          >
+                            {faculty.username}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => handleAssign(batch.batch_id)}
+                      disabled={!selectedFaculty[batch.batch_id]}
+                      size="sm"
+                    >
+                      {assignments[batch.batch_id] ? "Update" : "Assign"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

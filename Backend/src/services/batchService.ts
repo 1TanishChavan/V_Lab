@@ -3,24 +3,6 @@ import { batch } from './../models/schema';
 import { eq, and } from 'drizzle-orm';
 import { AppError } from './../utils/errors';
 
-// Add new batch
-// export async function addBatch(req: Request, res: Response) {
-//     const { department_id, semester, division, batch } = req.body;
-
-//     if (!department_id || !semester || !division || !batch) {
-//         return res.status(400).json({ error: 'Missing required fields' });
-//     }
-
-//     try {
-//         const newBatch = await batchService.addBatch({ department_id, semester, division, batch });
-//         res.status(201).json(newBatch);
-//     } catch (error) {
-//         console.error("Error adding batch:", error);
-//         res.status(500).json({ error: 'Failed to add batch' });
-//     }
-// }
-
-
 export async function createBatch(batchData: any) {
     try {
         const result = await db.insert(batch).values(batchData);
@@ -68,4 +50,22 @@ export async function getBatchesByDepartmentAndSemester(departmentId: number, se
 export async function getBatches() {
     return await db.select()
         .from(batch);
+}
+
+// NEW: Flexible fetch with optional filters
+export async function getBatchesWithFilters(departmentId?: number, semester?: number) {
+    const conditions = [];
+
+    if (departmentId) {
+        conditions.push(eq(batch.department_id, departmentId));
+    }
+    if (semester) {
+        conditions.push(eq(batch.semester, semester));
+    }
+
+    if (conditions.length > 0) {
+        return await db.select().from(batch).where(and(...conditions));
+    }
+
+    return await db.select().from(batch);
 }

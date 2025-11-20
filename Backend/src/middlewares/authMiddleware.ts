@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwtUtils';
 import { AppError } from '../utils/errors';
-import jwt from 'jsonwebtoken';
-import { getUserById } from './../services/userService';
-
 export interface AuthenticatedRequest extends Request {
     user?: any;
 }
@@ -16,12 +13,12 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     }
 
     try {
+        // verifyToken returns the decoded payload
         const decoded = verifyToken(token);
-        const user = await getUserById(decoded.id);
-        if (!user) {
-            return next(new AppError(401, 'User not found'));
-        }
-        req.user = user;
+
+        // Assign decoded payload directly to req.user
+        req.user = decoded;
+
         next();
     } catch (error) {
         next(new AppError(401, 'Invalid token'));

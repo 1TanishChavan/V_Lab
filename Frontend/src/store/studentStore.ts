@@ -1,14 +1,5 @@
 import { create } from 'zustand';
-import api from '../services/api'; // Adjust the import based on your API setup
-
-// interface Student {
-//   student_id: number;
-//   name: string;
-//   department: string;
-//   semester: string;
-//   division: string;
-//   batch: string;
-// }
+import api from '../services/api';
 
 interface StudentStoreState {
   students: any[];

@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useCourseStore } from "../store/courseStore";
+import { usePracticalStore } from "../store/practicalStore"; // Added store import
 import api from "../services/api";
-import { Breadcrumb } from "../components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "../components/ui/breadcrumb";
 import {
   Card,
   CardContent,
@@ -16,6 +23,7 @@ import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
 import { MultiSelect } from "../components/multi-select";
 import { useToast } from "../components/hooks/use-toast";
+import { Loader2, Slash, Plus, Trash2 } from "lucide-react";
 
 interface TestCase {
   input: string;
@@ -27,10 +35,16 @@ const PracticalCreation: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const course = useCourseStore((state) =>
-    state.courses.find((c) => c.course_id.toString() === courseId)
-  );
 
+  // Stores
+  const { courses, fetchCoursesById } = useCourseStore();
+  const { createPractical } = usePracticalStore();
+
+  // Derived State
+  const course = courses.find((c) => c.course_id.toString() === courseId);
+
+  // Local State
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [srNo, setSrNo] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -45,6 +59,14 @@ const PracticalCreation: React.FC = () => {
     { value: string; label: string }[]
   >([]);
 
+  // 1. Fetch Course Data if missing (Handle Refresh)
+  useEffect(() => {
+    if (courseId && !course) {
+      fetchCoursesById(parseInt(courseId));
+    }
+  }, [courseId, course, fetchCoursesById]);
+
+  // 2. Fetch Languages
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
@@ -88,22 +110,35 @@ const PracticalCreation: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!courseId || !srNo || !title) {
+      toast({
+        title: "Error",
+        description: "Please fill in required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      await api.post("/practicals", {
+      // Use store action instead of direct API call
+      await createPractical({
         sr_no: parseInt(srNo),
         practical_name: title,
         description,
         pdf_url: pdfUrl,
-        course_id: parseInt(courseId!),
+        course_id: parseInt(courseId),
         prac_io: testCases,
         prac_language: programmingLanguages.map((lang) => ({
           programming_language_id: parseInt(lang),
         })),
       });
+
       toast({
         title: "Success",
         description: "Practical created successfully!",
       });
+      // Navigate back to practicals list for this course
       navigate(`/practicals/${courseId}`);
     } catch (error) {
       console.error("Failed to create practical:", error);
@@ -112,85 +147,164 @@ const PracticalCreation: React.FC = () => {
         description: "Failed to create practical",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  if (!course && courseId) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* <Breadcrumb>
-        <Breadcrumb.Item href="/courses">Courses</Breadcrumb.Item>
-        <Breadcrumb.Item href={`/course/${courseId}`}>
-          {course?.course_name}
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>New Practical</Breadcrumb.Item>
-      </Breadcrumb> */}
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/courses">Courses</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbLink href={`/practicals/${courseId}`}>
+              {course?.course_name || "Course"}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator>
+            <Slash />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbLink>New Practical</BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-      <h1 className="text-3xl font-bold mb-6">{course?.course_name}</h1>
+      <h1 className="text-3xl font-bold mb-6">Add New Practical</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Create New Practical</CardTitle>
+            <CardTitle>Basic Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              placeholder="Sr No"
-              type="number"
-              value={srNo}
-              onChange={(e) => setSrNo(e.target.value)}
-              required
-            />
-            <Input
-              placeholder="Title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            <Textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-            <Input
-              type="text"
-              placeholder="PDF URL"
-              value={pdfUrl}
-              onChange={(e) => setPdfUrl(e.target.value)}
-            />
-            <MultiSelect
-              placeholder="Programming Languages"
-              options={languageOptions}
-              onValueChange={setProgrammingLanguages}
-              defaultValue={programmingLanguages}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-1">
+                <label className="text-sm font-medium mb-1 block">Sr No</label>
+                <Input
+                  placeholder="e.g. 1"
+                  type="number"
+                  value={srNo}
+                  onChange={(e) => setSrNo(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className="text-sm font-medium mb-1 block">
+                  Practical Title
+                </label>
+                <Input
+                  placeholder="e.g. Implement Binary Search"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Description
+              </label>
+              <Textarea
+                placeholder="Detailed description of the problem statement..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                PDF URL (Optional)
+              </label>
+              <Input
+                type="text"
+                placeholder="https://..."
+                value={pdfUrl}
+                onChange={(e) => setPdfUrl(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Supported Languages
+              </label>
+              <MultiSelect
+                placeholder="Select languages"
+                options={languageOptions}
+                onValueChange={setProgrammingLanguages}
+                defaultValue={programmingLanguages}
+              />
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Test Cases</CardTitle>
+            <Button
+              type="button"
+              onClick={addTestCase}
+              variant="outline"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add Test Case
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {testCases.map((testCase, index) => (
-              <Card key={index}>
-                <CardContent className="space-y-2">
-                  <Textarea
-                    placeholder="Input"
-                    value={testCase.input}
-                    onChange={(e) =>
-                      handleTestCaseChange(index, "input", e.target.value)
-                    }
-                  />
-                  <Textarea
-                    placeholder="Output"
-                    value={testCase.output}
-                    onChange={(e) =>
-                      handleTestCaseChange(index, "output", e.target.value)
-                    }
-                    required
-                  />
+              <div
+                key={index}
+                className="relative p-4 border rounded-lg bg-card/50"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="text-xs font-medium uppercase text-muted-foreground mb-1 block">
+                      Input
+                    </label>
+                    <Textarea
+                      placeholder="Input data"
+                      value={testCase.input}
+                      onChange={(e) =>
+                        handleTestCaseChange(index, "input", e.target.value)
+                      }
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium uppercase text-muted-foreground mb-1 block">
+                      Expected Output
+                    </label>
+                    <Textarea
+                      placeholder="Expected output"
+                      value={testCase.output}
+                      onChange={(e) =>
+                        handleTestCaseChange(index, "output", e.target.value)
+                      }
+                      required
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`public-${index}`}
@@ -203,28 +317,37 @@ const PracticalCreation: React.FC = () => {
                         )
                       }
                     />
-                    <label htmlFor={`public-${index}`}>Public test case</label>
+                    <label
+                      htmlFor={`public-${index}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Public test case (visible to students)
+                    </label>
                   </div>
-                  {index > 0 && (
+
+                  {testCases.length > 1 && (
                     <Button
-                      variant="destructive"
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => removeTestCase(index)}
                     >
-                      Remove Test Case
+                      <Trash2 className="h-4 w-4 mr-2" /> Remove
                     </Button>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </CardContent>
-          <CardFooter>
-            <Button type="button" onClick={addTestCase} variant="outline">
-              Add Test Case
-            </Button>
-          </CardFooter>
         </Card>
 
-        <Button type="submit">Create Practical</Button>
+        <div className="flex justify-end">
+          <Button type="submit" size="lg" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Create Practical
+          </Button>
+        </div>
       </form>
     </div>
   );

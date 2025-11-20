@@ -6,7 +6,7 @@ import { AppError } from './../../src/utils/errors';
 export async function getStudentsByDepartment(req: Request, res: Response, next: NextFunction) {
     try {
         const departmentId = req.params.department;
-        const students = await studentService.getStudentsByDepartment(departmentId);  // Assuming this exists in services
+        const students = await studentService.getStudentsByDepartment(departmentId);
         res.json(students);
     } catch (error) {
         next(error);

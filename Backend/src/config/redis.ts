@@ -19,11 +19,11 @@ class RedisClient {
             url: `${process.env.REDIS_URL}`,
             socket: {
                 connectTimeout: 10000,
-                keepAlive: 0, // Disable keepAlive to prevent ECONNRESET
+                keepAlive: 20,
                 noDelay: true,
                 timeout: 30000
             },
-            pingInterval: -1 // Disable ping
+            pingInterval: -1
         });
 
         // Error handling

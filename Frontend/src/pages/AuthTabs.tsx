@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useDepartmentStore } from "../store/departmentStore";
@@ -50,7 +50,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   // role: z.enum(["Student", "Faculty", "HOD"]),
-  department_id: z.string(),
+  department_id: z.string().min(1, "Department is required"),
   semester: z.string().optional(),
   division: z.string().optional(),
   batch_id: z.string().optional(),
@@ -60,6 +60,8 @@ const registerSchema = z.object({
 const AuthTabs: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [batches, setBatches] = useState<Batch[]>([]);
+
+  // Local state for dependent dropdown logic
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
 
@@ -76,67 +78,73 @@ const AuthTabs: React.FC = () => {
     resolver: zodResolver(registerSchema),
   });
 
+  // 1. Load Data
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([fetchDepartments()]);
+      if (departments.length === 0) {
+        await fetchDepartments();
+      }
       setIsLoading(false);
     };
     loadData();
-  }, [fetchDepartments]);
+  }, [fetchDepartments, departments.length]);
 
-  const fetchBatchData = async () => {
-    if (selectedDepartment && selectedSemester) {
-      try {
-        const response = await getBatchesByDepartmentAndSemeter(
-          parseInt(selectedDepartment),
-          parseInt(selectedSemester)
-        );
-        setBatches(response.data);
-      } catch (error) {
-        console.error("Error fetching batch data:", error);
+  // 2. Fetch Batches when Dept/Sem changes
+  useEffect(() => {
+    const fetchBatchData = async () => {
+      if (selectedDepartment && selectedSemester) {
+        try {
+          const deptId = parseInt(selectedDepartment);
+          const semId = parseInt(selectedSemester);
+
+          if (!isNaN(deptId) && !isNaN(semId)) {
+            const response = await getBatchesByDepartmentAndSemeter(
+              deptId,
+              semId
+            );
+            setBatches(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching batch data:", error);
+          setBatches([]);
+        }
+      } else {
         setBatches([]);
       }
-    }
-  };
-
-  useEffect(() => {
+    };
     fetchBatchData();
   }, [selectedDepartment, selectedSemester]);
 
+  // 3. Logic Handlers
   const handleDepartmentChange = (value: string) => {
     setSelectedDepartment(value);
+    setSelectedSemester(""); // Reset semester
+    setBatches([]); // Clear batches
+
     registerForm.setValue("department_id", value);
     registerForm.setValue("semester", "");
     registerForm.setValue("division", "");
     registerForm.setValue("batch_id", "");
-    console.log(registerForm.getValues("username"));
-    setSelectedSemester("");
-    setBatches([]);
   };
 
   const handleSemesterChange = (value: string) => {
     setSelectedSemester(value);
+
     registerForm.setValue("semester", value);
     registerForm.setValue("division", "");
     registerForm.setValue("batch_id", "");
   };
 
-  // const divisionOptions = batches
-  //   .filter(
-  //     (b) =>
-  //       b.department_id.toString() === department &&
-  //       b.semester.toString() === semester
-  //   )
-  //   .map((b) => ({ value: b.division.toString(), label: b.division }));
+  // 4. Memoized Lists for Performance
+  const uniqueDivisions = useMemo(() => {
+    return [...new Set(batches.map((b) => b.division))];
+  }, [batches]);
 
-  // const batchOptions = batches
-  //   .filter(
-  //     (b) =>
-  //       b.department_id.toString() === department &&
-  //       b.semester.toString() === semester &&
-  //       b.division.toString() === division
-  //   )
-  //   .map((b) => ({ value: b.batch_id.toString(), label: b.batch }));
+  const filteredBatches = useMemo(() => {
+    const currentDivision = registerForm.watch("division");
+    if (!currentDivision) return [];
+    return batches.filter((b) => b.division === currentDivision);
+  }, [batches, registerForm.watch("division")]);
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
@@ -173,10 +181,12 @@ const AuthTabs: React.FC = () => {
   };
 
   if (isLoading) {
-    <div className="flex items-center justify-center h-full">
-      <Skeleton className="w-[300px] h-[200px]" />;
-    </div>;
-    return;
+    // FIX: Added 'return' keyword here so the loading state actually renders
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Skeleton className="w-[300px] h-[200px]" />
+      </div>
+    );
   }
 
   return (
@@ -295,31 +305,6 @@ const AuthTabs: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  {/* <FormField
-                    control={registerForm.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Student">Student</SelectItem>
-                            <SelectItem value="Faculty">Faculty</SelectItem>
-                            <SelectItem value="HOD">HOD</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
                   <FormField
                     control={registerForm.control}
                     name="department_id"
@@ -374,6 +359,7 @@ const AuthTabs: React.FC = () => {
                         <Select
                           onValueChange={handleSemesterChange}
                           value={field.value}
+                          disabled={!selectedDepartment}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -401,6 +387,7 @@ const AuthTabs: React.FC = () => {
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
+                          disabled={batches.length === 0}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -409,13 +396,11 @@ const AuthTabs: React.FC = () => {
                           </FormControl>
                           <SelectContent>
                             {/* Filter to get unique divisions */}
-                            {[...new Set(batches.map((b) => b.division))].map(
-                              (division) => (
-                                <SelectItem key={division} value={division}>
-                                  {division}
-                                </SelectItem>
-                              )
-                            )}
+                            {uniqueDivisions.map((division) => (
+                              <SelectItem key={division} value={division}>
+                                {division}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -431,6 +416,7 @@ const AuthTabs: React.FC = () => {
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
+                          disabled={!registerForm.watch("division")}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -439,19 +425,14 @@ const AuthTabs: React.FC = () => {
                           </FormControl>
                           <SelectContent>
                             {/* Filter batches based on selected division */}
-                            {batches
-                              .filter(
-                                (b) =>
-                                  b.division === registerForm.watch("division")
-                              )
-                              .map((b) => (
-                                <SelectItem
-                                  key={b.batch_id}
-                                  value={b.batch_id.toString()}
-                                >
-                                  {b.batch}
-                                </SelectItem>
-                              ))}
+                            {filteredBatches.map((b) => (
+                              <SelectItem
+                                key={b.batch_id}
+                                value={b.batch_id.toString()}
+                              >
+                                {b.batch}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />

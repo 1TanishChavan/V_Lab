@@ -1,12 +1,10 @@
 import { db } from './../config/db';
 import { submissions, practicals, students, users, prac_io, prac_language, courses, batch_practical_access, batch, courses_faculty } from './../models/schema';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, or, isNotNull, desc } from 'drizzle-orm';
 import { AppError } from './../utils/errors';
 import axios from 'axios';
 import redis from './../config/redis';
 import { Buffer } from 'buffer'; // Import Buffer for Base64
-
-// const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
 
 // --- Refactored Judge0 Configuration ---
 
@@ -32,23 +30,20 @@ if (IS_RAPID_API) {
 const b64Encode = (str: string) => Buffer.from(str).toString('base64');
 const b64Decode = (str: string) => Buffer.from(str, 'base64').toString('utf-8');
 
-// 4. Common parameters for POST requests (as per your example)
+// 4. Common parameters for POST requests
 const judge0PostParams = {
     base64_encoded: 'true',
-    wait: 'false', // We will poll manually as per the original logic
+    wait: 'false',
 };
 
 // --- End of Refactored Configuration ---
 
 
-const SUBMISSION_TIMEOUT = 30000; // 30 seconds
 const RESULTS_EXPIRY = 3600; // 1 hour in seconds
-const SUBMISSION_RATE_LIMIT = 30000; // 30 seconds between submissions
-const RUN_RATE_LIMIT = 15000; // 15 seconds between code runs
-// This constant is no longer used by createBatchSubmissions, as we send all test cases in one batch.
-// const BATCH_SIZE = 5; 
-const MAX_POLL_ATTEMPTS = 6; // Maximum number of polling attempts
-const POLL_INTERVAL = 7000; // 5 seconds between polls
+
+const SUBMISSION_TIMEOUT = 30000; // 30 seconds
+const MAX_POLL_ATTEMPTS = 6;
+const POLL_INTERVAL = 7000;
 
 
 // Removed duplicate interface
@@ -77,32 +72,50 @@ export async function getSubmissionResults(submissionId: string) {
     };
 }
 
-export async function getPracticalWithSubmissionStatus(courseId: number, studentId: number) {
-    const result = await db.select({
-        practical_id: practicals.practical_id,
-        sr_no: practicals.sr_no,
-        practical_name: practicals.practical_name,
-        description: practicals.description,
-        pdf_url: practicals.pdf_url,
-        status: submissions.status,
-        marks: submissions.marks,
-        deadline: batch_practical_access.deadline,
-        lock: batch_practical_access.lock,
-    })
-        .from(practicals)
-        .leftJoin(submissions, and(
-            eq(submissions.practical_id, practicals.practical_id),
-            eq(submissions.student_id, studentId)
-        ))
-        .leftJoin(batch_practical_access, eq(batch_practical_access.practical_id, practicals.practical_id))
-        .leftJoin(students, eq(students.student_id, studentId))
-        .leftJoin(batch, eq(batch.batch_id, students.batch_id))
-        .where(and(
-            eq(practicals.course_id, courseId),
-            eq(batch_practical_access.batch_id, batch.batch_id)
-        ));
+export async function getPracticalWithSubmissionStatus(courseId: number, studentId: number, batchId: number) {
+    try {
+        const result = await db
+            .select({
+                practical_id: practicals.practical_id,
+                sr_no: practicals.sr_no,
+                practical_name: practicals.practical_name,
+                course_id: practicals.course_id,
+                description: practicals.description,
+                pdf_url: practicals.pdf_url,
+                status: submissions.status,
+                marks: submissions.marks,
+                deadline: batch_practical_access.deadline,
+                lock: batch_practical_access.lock,
+            })
+            .from(practicals)
+            .leftJoin(
+                submissions,
+                and(
+                    eq(submissions.practical_id, practicals.practical_id),
+                    eq(submissions.student_id, studentId)
+                )
+            )
+            .leftJoin(
+                batch_practical_access,
+                and(
+                    eq(batch_practical_access.practical_id, practicals.practical_id),
+                    eq(batch_practical_access.batch_id, batchId)
+                )
+            )
+            .where(eq(practicals.course_id, courseId))
+            .having(
+                or(
+                    eq(batch_practical_access.lock, false),
+                    isNotNull(submissions.status)
+                )
+            )
+            .orderBy(practicals.sr_no);
 
-    return result;
+        return result;
+    } catch (error) {
+        console.error('Error in getPracticalWithSubmissionStatus:', error);
+        throw new AppError(500, 'Failed to fetch practicals');
+    }
 }
 
 
@@ -178,7 +191,6 @@ export async function updateSubmission(submissionId: number, updateData: { statu
             })
             .where(eq(submissions.submission_id, submissionId));
 
-        // Fetch the updated submission to return
         const updatedSubmission = await getSubmissionById(submissionId);
         return updatedSubmission;
     } catch (error) {
@@ -266,7 +278,6 @@ export async function updateStudent(studentId: number, updateData: Partial<typeo
             .set(updateData)
             .where(eq(students.student_id, studentId));
 
-        // Fetch and return the updated student details
         const updatedStudent = await getStudentDetails(studentId);
         return updatedStudent;
     } catch (error) {
@@ -287,13 +298,11 @@ export async function deleteStudent(studentId: number) {
 
 export async function getRunResult(token: string) {
     try {
-        // REFACTORED: Use centralized client and params
         const response = await judge0ApiClient.get(`/submissions/${token}`, {
             params: { base64_encoded: 'true', fields: 'status,stdout,stderr,time,memory' }
         });
 
         const data = response.data;
-        // REFACTORED: Decode output
         if (data.stdout) data.stdout = b64Decode(data.stdout);
         if (data.stderr) data.stderr = b64Decode(data.stderr);
 
@@ -333,10 +342,8 @@ async function storeSubmissionData(submissionData: any, results: SubmissionResul
         submission_time: new Date()
     });
 
-    // In MySQL, the insertId is returned directly
     const submissionId = result.insertId;
 
-    // Store additional data in Redis
     const redisKey = `submission:${submissionId}`;
     await redis.set(redisKey, JSON.stringify({
         results,
@@ -381,45 +388,26 @@ async function saveSubmissionToDatabase(submissionData: any) {
     });
 }
 
-async function checkRateLimit(userId: number, action: 'submit' | 'run'): Promise<boolean> {
-    const key = `ratelimit:${action}:${userId}`;
-    const limit = action === 'submit' ? SUBMISSION_RATE_LIMIT : RUN_RATE_LIMIT;
-
-    try {
-        const lastAction = await redis.get(key);
-        if (lastAction) {
-            return false;
-        }
-
-        await redis.set(key, Date.now().toString(), { EX: limit });
-        return true;
-    } catch (error) {
-        console.error(`Rate limit check failed for ${action}:`, error);
-        return false;
-    }
-}
-
 export async function runCode(runData: { code: string; language: string; input: string; userId: number }) {
-    const canRun = await checkRateLimit(runData.userId, 'run');
-    if (!canRun) {
-        throw new AppError(429, `Please wait ${RUN_RATE_LIMIT} seconds before running code again`);
-    }
+    // REMOVED: Redundant rate limit check. This is now handled by the route middleware.
+    // const canRun = await checkRateLimit(runData.userId, 'run');
+    // if (!canRun) {
+    //     throw new AppError(429, `Please wait ${RUN_RATE_LIMIT} seconds before running code again`);
+    // }
 
     try {
-        // REFACTORED: Use centralized client, Base64, and POST params
         const response = await judge0ApiClient.post('/submissions', {
             source_code: b64Encode(runData.code),
             language_id: parseInt(runData.language, 10),
             stdin: b64Encode(runData.input),
             redirect_stderr_to_stdout: true
         }, {
-            params: judge0PostParams // Use the common params
+            params: judge0PostParams
         });
 
         const { token } = response.data;
         const result = await waitForResult(token);
 
-        // REFACTORED: Decode the output from Base64
         const output = result.stdout ? b64Decode(result.stdout) :
             result.stderr ? b64Decode(result.stderr) : 'No output';
 
@@ -432,7 +420,6 @@ export async function runCode(runData: { code: string; language: string; input: 
     } catch (error: any) {
         console.error('Error in runCode:', error);
         if (error.response && error.response.status === 422) {
-            // REFACTORED: Decode error output if present
             let errorData = error.response.data;
             if (errorData.compile_output) {
                 errorData.compile_output = b64Decode(errorData.compile_output);
@@ -449,17 +436,14 @@ async function waitForResult(token: string, timeout = SUBMISSION_TIMEOUT) {
 
     while (Date.now() - startTime < timeout) {
         try {
-            // REFACTORED: Use centralized client and add params
             const response = await judge0ApiClient.get(`/submissions/${token}`, {
                 params: { base64_encoded: 'true', fields: '*' }
             });
 
-            if (response.data.status.id !== 1 && response.data.status.id !== 2) { // Not In Queue or Processing
-                // Return the raw B64 data; the *caller* (runCode) will decode it.
-                // This keeps this function generic.
+            if (response.data.status.id !== 1 && response.data.status.id !== 2) {
                 return response.data;
             }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
             console.error('Error fetching result:', error);
             throw new AppError(500, 'Failed to get result');
@@ -469,17 +453,10 @@ async function waitForResult(token: string, timeout = SUBMISSION_TIMEOUT) {
     throw new AppError(504, 'Submission processing timeout');
 }
 
-/**
- * REFACTORED: This function now sends ALL test cases in a *single* batch request
- * to minimize API calls, instead of looping and sending multiple batches.
- */
 async function createBatchSubmissions(code: string, language: string, testCases: any[]): Promise<SubmissionResult[]> {
-
-    // 1. Encode the source code ONCE
     const encodedCode = b64Encode(code);
     const langId = parseInt(language, 10);
 
-    // 2. Map ALL test cases to the required submission format
     const submissions = testCases.map(testCase => ({
         source_code: encodedCode,
         language_id: langId,
@@ -488,13 +465,11 @@ async function createBatchSubmissions(code: string, language: string, testCases:
         redirect_stderr_to_stdout: true
     }));
 
-    // 3. Send ALL submissions in ONE batch API call
     const response = await judge0ApiClient.post('/submissions/batch',
-        { submissions }, // The entire array is the payload
-        { params: judge0PostParams } // Use common POST params
+        { submissions },
+        { params: judge0PostParams }
     );
 
-    // 4. Map the response (which is an array of {token: string}) back
     return response.data.map((result: any, index: number) => ({
         token: result.token,
         input: testCases[index].input,
@@ -508,17 +483,16 @@ async function pollBatchResults(tokens: string[]): Promise<any[]> {
     while (attempts < MAX_POLL_ATTEMPTS) {
         const batchTokens = tokens.join(',');
 
-        // REFACTORED: Use centralized client and add params
         const response = await judge0ApiClient.get('/submissions/batch', {
             params: {
                 tokens: batchTokens,
                 base64_encoded: 'true',
-                fields: 'token,status,stdout,stderr' // Get all relevant fields
+                fields: 'token,status,stdout,stderr'
             }
         });
 
         const allCompleted = response.data.submissions.every((sub: any) =>
-            sub.status.id !== 1 && sub.status.id !== 2); // Not In Queue or Processing
+            sub.status.id !== 1 && sub.status.id !== 2);
 
         if (allCompleted) {
             return response.data.submissions;
@@ -537,7 +511,6 @@ export async function submitCode(submissionData: {
     practicalId: number;
     studentId: number;
 }) {
-    // 1. Check for an existing submission for this student and practical
     const [existingSubmission] = await db
         .select({ submission_id: submissions.submission_id })
         .from(submissions)
@@ -547,7 +520,6 @@ export async function submitCode(submissionData: {
         ))
         .limit(1);
 
-    // 2. If it exists, call updateSubmissionCode to resubmit
     if (existingSubmission) {
         return updateSubmissionCode({
             ...submissionData,
@@ -555,22 +527,17 @@ export async function submitCode(submissionData: {
         });
     }
 
-    // 3. If it does not exist, proceed with creating a new submission
-
-    // Fetch all test cases
     const testCases = await db
         .select()
         .from(prac_io)
         .where(eq(prac_io.practical_id, submissionData.practicalId));
 
-    // Create batch submissions (NOW A SINGLE API CALL)
     const batchResults = await createBatchSubmissions(
         submissionData.code,
         submissionData.language,
         testCases
     );
 
-    // Store initial submission
     const [result] = await db.insert(submissions).values({
         practical_id: submissionData.practicalId,
         student_id: submissionData.studentId,
@@ -581,8 +548,6 @@ export async function submitCode(submissionData: {
 
     const submissionId = result.insertId;
 
-    // Start processing results asynchronously
-    // This function makes no API calls, just DB/Redis
     processSubmissionResults(submissionId, batchResults).catch(console.error);
 
     return { submissionId };
@@ -590,22 +555,19 @@ export async function submitCode(submissionData: {
 async function processSubmissionResults(submissionId: number, results: SubmissionResult[]) {
     try {
         const tokens = results.map(r => r.token);
-        // This function polls Judge0
         const batchResults = await pollBatchResults(tokens);
 
         console.log(batchResults)
-        const allPassed = batchResults.every(result => result.status.id === 3); // 3 = Accepted
+        const allPassed = batchResults.every(result => result.status.id === 3);
         const status = allPassed ? 'Accepted' : 'Rejected';
 
-        // Update database
         await db.update(submissions)
             .set({
                 status,
-                marks: allPassed ? 15 : 0 // Or your grading logic
+                marks: allPassed ? 15 : 0
             })
             .where(eq(submissions.submission_id, submissionId));
 
-        // Store simple results in Redis
         await redis.set(`submission:${submissionId}`, JSON.stringify({
             status,
             completed: true
@@ -614,7 +576,7 @@ async function processSubmissionResults(submissionId: number, results: Submissio
     } catch (error) {
         console.error('Error processing submission results:', error);
         await db.update(submissions)
-            .set({ status: 'Rejected' }) // Mark as Rejected on error
+            .set({ status: 'Rejected' })
             .where(eq(submissions.submission_id, submissionId));
     }
 }
@@ -623,7 +585,6 @@ export async function getSubmissionStatus(submissionId: string) {
     const data = await redis.get(`submission:${submissionId}`);
     console.log(data);
     if (!data) {
-        // Fallback to DB if not in Redis
         const [submission] = await db
             .select()
             .from(submissions)
@@ -650,20 +611,17 @@ export async function updateSubmissionCode(submissionData: {
     practicalId: number;
     studentId: number;
 }) {
-    // Fetch all test cases
     const testCases = await db
         .select()
         .from(prac_io)
         .where(eq(prac_io.practical_id, submissionData.practicalId));
 
-    // Create batch submissions (SINGLE API CALL)
     const batchResults = await createBatchSubmissions(
         submissionData.code,
         submissionData.language,
         testCases
     );
 
-    // Update existing submission to 'Pending'
     await db.update(submissions)
         .set({
             code_submitted: submissionData.code,
@@ -672,21 +630,61 @@ export async function updateSubmissionCode(submissionData: {
         })
         .where(eq(submissions.submission_id, submissionData.submissionId));
 
-    // --- ⬇️ HERE IS THE FIX ⬇️ ---
-    //
-    // Delete the old, stale result from Redis.
-    // This forces getSubmissionStatus to read from the DB (which is "Pending")
-    // until the new result is processed and a new key is set.
     try {
         await redis.del(`submission:${submissionData.submissionId}`);
     } catch (error) {
-        // Log the error but don't stop the submission
         console.error('Failed to delete stale Redis key:', error);
     }
-    // --- ⬆️ END OF FIX ⬆️ ---
 
-    // Process results asynchronously
     processSubmissionResults(submissionData.submissionId, batchResults).catch(console.error);
 
     return { submissionId: submissionData.submissionId };
+}
+
+export async function getPreviousSubmission(practicalId: number, studentId: number) {
+    try {
+        const previousSubmission = await db
+            .select({
+                submission_id: submissions.submission_id,
+                code: submissions.code_submitted,
+                status: submissions.status,
+                submission_time: submissions.submission_time,
+                marks: submissions.marks
+            })
+            .from(submissions)
+            .where(
+                and(
+                    eq(submissions.practical_id, practicalId),
+                    eq(submissions.student_id, studentId)
+                )
+            )
+            .orderBy(desc(submissions.submission_time))
+            .limit(1);
+
+        return previousSubmission.length > 0 ? previousSubmission[0] : null;
+    } catch (error) {
+        console.error('Error in getPreviousSubmission:', error);
+        throw new AppError(500, 'Failed to fetch previous submission');
+    }
+}
+
+export async function checkAcceptedSubmission(practicalId: number, studentId: number) {
+    try {
+        const existingSubmission = await db
+            .select()
+            .from(submissions)
+            .where(
+                and(
+                    eq(submissions.practical_id, practicalId),
+                    eq(submissions.student_id, studentId),
+                    eq(submissions.status, 'Accepted')
+                )
+            )
+            .limit(1);
+
+        return existingSubmission.length > 0;
+    } catch (error) {
+        console.error('Error in checkAcceptedSubmission:', error);
+        throw new AppError(500, 'Failed to check existing submission');
+    }
 }

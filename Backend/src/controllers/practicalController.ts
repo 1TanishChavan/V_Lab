@@ -14,17 +14,6 @@ export async function createPractical(req: AuthenticatedRequest, res: Response, 
     }
 }
 
-
-
-// export async function updatePractical(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-//     try {
-//         const practical = await practicalService.updatePractical(parseInt(req.params.id), req.body);
-//         res.json(practical);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
-
 export async function deletePractical(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         await practicalService.deletePractical(parseInt(req.params.id));
@@ -43,18 +32,6 @@ export async function getPracticals(req: Request, res: Response, next: NextFunct
         next(error);
     }
 }
-
-// export async function getPracticalById(req: Request, res: Response, next: NextFunction) {
-//     try {
-//         const practical = await practicalService.getPracticalById(parseInt(req.params.id));
-//         if (!practical) {
-//             throw new AppError(404, 'Practical not found');
-//         }
-//         res.json(practical);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
 
 export async function getPracticalByCourse(req: Request, res: Response, next: NextFunction) {
     try {
@@ -95,17 +72,6 @@ export async function getPracticalLanguages(req: Request, res: Response, next: N
         next(error);
     }
 }
-
-// export async function updatePractical(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-//     try {
-//         const practical = await practicalService.updatePractical(parseInt(req.params.id), req.body);
-//         res.json(practical);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
-
-
 interface PracticalUpdateData {
     sr_no: number;
     practical_name: string;
@@ -223,28 +189,3 @@ export async function updatePractical(req: AuthenticatedRequest, res: Response, 
         next(error);
     }
 }
-
-// export async function getPracticalById(req: Request, res: Response, next: NextFunction) {
-//     try {
-//         const practicalId = parseInt(req.params.id);
-//         if (isNaN(practicalId)) {
-//             throw new AppError(400, 'Invalid practical ID');
-//         }
-
-//         const practical = await practicalService.getPracticalById(practicalId);
-//         if (!practical) {
-//             throw new AppError(404, 'Practical not found');
-//         }
-        
-//         // Include all related data
-//         const practicalWithDetails = {
-//             ...practical,
-//             prac_io: await practicalService.getPracticalTestCases(practical.practical_id),
-//             prac_language: await practicalService.getPracticalLanguages(practical.practical_id)
-//         };
-        
-//         res.json(practicalWithDetails);
-//     } catch (error) {
-//         next(error);
-//     }
-// }
